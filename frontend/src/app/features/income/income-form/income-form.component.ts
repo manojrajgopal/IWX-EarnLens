@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -35,6 +35,7 @@ import {
   safeDayOfMonth,
 } from '../engine/validators/income.validators';
 import { RecurrencePreviewComponent } from '../components/recurrence-preview/recurrence-preview.component';
+import { IncomeFormDraftService } from './services/income-form-draft.service';
 
 @Component({
   selector: 'app-income-form',
@@ -59,6 +60,9 @@ export class IncomeFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly visibility = inject(FieldVisibilityService);
   private readonly dialog = inject(DialogService);
+  private readonly draft = inject(IncomeFormDraftService);
+  private readonly destroyRef = inject(DestroyRef);
+  private saved = false;
 
   readonly typeOptions = INCOME_TYPE_OPTIONS;
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
@@ -142,8 +146,30 @@ export class IncomeFormComponent implements OnInit {
       this.categories.set(categories);
       this.sources.set(sources);
       this.tags.set(tags);
+      this.restoreDraft();
       this.loading.set(false);
     });
+
+    this.destroyRef.onDestroy(() => {
+      if (!this.saved) {
+        this.draft.save({
+          formValue: this.form.getRawValue(),
+          selectedTags: this.selectedTags(),
+        });
+      }
+    });
+  }
+
+  private restoreDraft(): void {
+    const d = this.draft.load();
+    if (!d) return;
+    this.form.patchValue(d.formValue);
+    this.selectedTags.set(d.selectedTags ?? []);
+    // Sync signal state from restored values
+    this.incomeType.set((d.formValue['income_type'] as IncomeType) || 'one_time');
+    this.recurrence.set((d.formValue['recurrence'] as RecurrenceType) || 'none');
+    this.autoAdd.set(!!d.formValue['auto_add']);
+    this.draft.clear();
   }
 
   /** Whether a field key should render for the current type + recurrence. */
@@ -216,6 +242,8 @@ export class IncomeFormComponent implements OnInit {
     this.saving.set(true);
     this.incomeApi.create(payload).subscribe({
       next: () => {
+        this.saved = true;
+        this.draft.clear();
         this.toast.success(
           payload.auto_add
             ? 'Income added — automation enabled. EarnLens will record it for you.'
@@ -237,5 +265,11 @@ export class IncomeFormComponent implements OnInit {
 
   private today(): string {
     return new Date().toISOString().slice(0, 10);
+  }
+
+  cancel(): void {
+    this.saved = true;
+    this.draft.clear();
+    this.router.navigate(['/app/income']);
   }
 }

@@ -171,23 +171,29 @@
             @if (isVisible('category_id')) {
               <div>
                 <label class="field-label">Category</label>
-                <select class="select" formControlName="category_id">
-                  <option value="">No category</option>
-                  @for (c of categories(); track c.id) {
-                    <option [value]="c.id">{{ c.name }}</option>
-                  }
-                </select>
+                <div class="flex gap-2">
+                  <select class="select flex-1" formControlName="category_id">
+                    <option value="">No category</option>
+                    @for (c of categories(); track c.id) {
+                      <option [value]="c.id">{{ c.name }}</option>
+                    }
+                  </select>
+                  <a routerLink="/app/categories" class="btn btn-ghost btn-sm self-center" title="Create category">+</a>
+                </div>
               </div>
             }
             @if (isVisible('source_id')) {
               <div>
                 <label class="field-label">Source</label>
-                <select class="select" formControlName="source_id">
-                  <option value="">No source</option>
-                  @for (s of sources(); track s.id) {
-                    <option [value]="s.id">{{ s.name }}</option>
-                  }
-                </select>
+                <div class="flex gap-2">
+                  <select class="select flex-1" formControlName="source_id">
+                    <option value="">No source</option>
+                    @for (s of sources(); track s.id) {
+                      <option [value]="s.id">{{ s.name }}</option>
+                    }
+                  </select>
+                  <a routerLink="/app/sources" class="btn btn-ghost btn-sm self-center" title="Create source">+</a>
+                </div>
               </div>
             }
             @if (isVisible('payment_mode')) {
@@ -277,7 +283,7 @@
         }
 
         <div class="flex gap-3 justify-end pb-2">
-          <a routerLink="/app/income" class="btn btn-ghost">Cancel</a>
+          <button type="button" class="btn btn-ghost" (click)="cancel()">Cancel</button>
           <button class="btn btn-primary" [disabled]="saving()">
             {{ saving() ? 'Saving…' : 'Add income' }}
           </button>

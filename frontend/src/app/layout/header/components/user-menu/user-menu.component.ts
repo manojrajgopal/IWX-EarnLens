@@ -17,9 +17,15 @@ import { ThemeService } from '../../../../core/services/theme.service';
       </button>
 
       <div class="um__wrap" #wrap (mouseenter)="onEnter()" (mouseleave)="onLeave()">
-        <button class="um__avatar" type="button" (click)="toggle()" [class.um__avatar--open]="open()">
-          {{ initials() || '☺' }}
-        </button>
+        @if (avatarUrl()) {
+          <button class="um__avatar um__avatar--img" type="button" (click)="toggle()" [class.um__avatar--open]="open()">
+            <img [src]="avatarUrl()" alt="Avatar" class="um__avatar-img" />
+          </button>
+        } @else {
+          <button class="um__avatar" type="button" (click)="toggle()" [class.um__avatar--open]="open()">
+            {{ initials() || '☺' }}
+          </button>
+        }
 
         @if (open()) {
           <div class="um__panel">
@@ -68,6 +74,8 @@ export class UserMenuComponent {
       .join('')
       .toUpperCase();
   });
+
+  readonly avatarUrl = computed(() => this.user()?.avatar_url || null);
 
   isDark(): boolean {
     return document.documentElement.classList.contains('dark');

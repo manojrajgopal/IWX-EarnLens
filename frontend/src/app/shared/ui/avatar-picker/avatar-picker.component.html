@@ -1,0 +1,21 @@
+<div class="ap">
+  <p class="ap__label">Choose your avatar</p>
+  <div class="ap__grid">
+    @for (avatar of avatars; track avatar.id) {
+      <button
+        type="button"
+        class="ap__tile"
+        [class.ap__tile--active]="isActive(avatar)"
+        [title]="avatar.label"
+        (click)="select(avatar)"
+      >
+        <img
+          class="ap__img"
+          [src]="avatar.url"
+          [alt]="avatar.label"
+          loading="lazy"
+        />
+      </button>
+    }
+  </div>
+</div>

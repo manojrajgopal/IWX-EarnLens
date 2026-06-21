@@ -9,7 +9,11 @@
     <div class="lg:col-span-2 flex flex-col gap-6">
       <!-- identity -->
       <div class="card card-pad flex items-center gap-4">
-        <span class="profile-avatar">{{ initials() }}</span>
+        @if (avatarUrl()) {
+          <img [src]="avatarUrl()" alt="Avatar" class="profile-avatar-img" />
+        } @else {
+          <span class="profile-avatar">{{ initials() }}</span>
+        }
         <div class="min-w-0 flex-1">
           <p class="font-serif text-xl font-bold truncate">{{ user()?.full_name }}</p>
           <p class="text-sm text-secondary truncate">{{ user()?.username }}</p>
@@ -42,9 +46,11 @@
               }
             </select>
           </div>
-          <div>
-            <label class="field-label">Avatar URL</label>
-            <input class="input" formControlName="avatar_url" placeholder="https://" />
+          <div class="sm:col-span-2">
+            <app-avatar-picker
+              [selected]="profileForm.get('avatar_url')!.value"
+              (pick)="onAvatarPick($event)"
+            />
           </div>
           <div class="sm:col-span-2 flex justify-end">
             <button class="btn btn-primary" [disabled]="savingProfile()">

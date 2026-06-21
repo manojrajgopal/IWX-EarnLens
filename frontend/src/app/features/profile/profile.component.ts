@@ -6,12 +6,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CURRENCY_OPTIONS } from '../../core/constants/app.constants';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
+import { AvatarPickerComponent } from '../../shared/ui/avatar-picker';
 import { passwordMatch } from '../auth/shared/validators/auth.validators';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TimeAgoPipe],
+  imports: [CommonModule, ReactiveFormsModule, TimeAgoPipe, AvatarPickerComponent],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
@@ -29,6 +30,8 @@ export class ProfileComponent implements OnInit {
     const name = this.user()?.full_name ?? '';
     return name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
   });
+
+  readonly avatarUrl = computed(() => this.user()?.avatar_url || null);
 
   readonly profileForm = this.fb.nonNullable.group({
     full_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -75,6 +78,11 @@ export class ProfileComponent implements OnInit {
       },
       error: () => this.savingProfile.set(false),
     });
+  }
+
+  onAvatarPick(url: string): void {
+    this.profileForm.patchValue({ avatar_url: url });
+    this.profileForm.markAsDirty();
   }
 
   changePassword(): void {
