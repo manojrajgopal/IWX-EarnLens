@@ -7,11 +7,12 @@ import { Category, CategoryPayload } from '../../../core/models/category.model';
 import { CHART_PALETTE } from '../../../core/constants/app.constants';
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state/empty-state.component';
+import { IconPickerComponent, IconDisplayComponent } from '../../../shared/components/icon-picker';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, EmptyStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, EmptyStateComponent, IconPickerComponent, IconDisplayComponent],
   templateUrl: './categories.component.html',
 })
 export class CategoriesComponent implements OnInit {

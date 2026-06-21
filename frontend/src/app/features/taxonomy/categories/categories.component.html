@@ -21,8 +21,8 @@
           <input class="input" formControlName="description" placeholder="Optional" />
         </div>
         <div>
-          <label class="field-label">Icon (emoji)</label>
-          <input class="input" formControlName="icon" placeholder="e.g. 💼" maxlength="2" />
+          <label class="field-label">Icon</label>
+          <app-icon-picker [value]="form.value.icon ?? null" (pick)="form.patchValue({ icon: $event ?? '' })" />
         </div>
         <div>
           <label class="field-label">Color</label>
@@ -59,7 +59,7 @@
         @for (item of items(); track item.id) {
           <div class="card card-pad flex items-start gap-3">
             <span class="tax-icon" [style.background]="item.color + '22'" [style.color]="item.color">
-              {{ item.icon || '⬡' }}
+              <app-icon-display [icon]="item.icon" />
             </span>
             <div class="min-w-0 flex-1">
               <p class="font-semibold truncate">{{ item.name }}</p>
