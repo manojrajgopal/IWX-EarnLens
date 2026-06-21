@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
         <div class="ftr__grid">
           <!-- brand -->
           <div class="ftr__col">
-            <a routerLink="/app/dashboard" class="ftr__brand">
+            <a routerLink="/app/welcome" class="ftr__brand">
               <span class="ftr__brand-mark">◆</span>
               <span class="ftr__brand-name">EarnLens</span>
             </a>

@@ -1,0 +1,18 @@
+<div class="faq">
+  @for (entry of entries; track entry.id) {
+    <div class="faq__item" [class.faq__item--open]="openId() === entry.id">
+      <button
+        type="button"
+        class="faq__q"
+        (click)="toggle(entry.id)"
+        [attr.aria-expanded]="openId() === entry.id"
+      >
+        <span class="faq__q-text">{{ entry.question }}</span>
+        <span class="faq__q-mark" aria-hidden="true">＋</span>
+      </button>
+      <div class="faq__a-wrap">
+        <p class="faq__a">{{ entry.answer }}</p>
+      </div>
+    </div>
+  }
+</div>

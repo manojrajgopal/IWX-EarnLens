@@ -1,0 +1,21 @@
+<ol class="journey">
+  <span class="journey__spine" aria-hidden="true"></span>
+
+  @for (step of steps; track step.index) {
+    <li class="journey__step" appReveal [revealDelay]="step.index * 90">
+      <div class="journey__node">
+        <span class="journey__node-icon" aria-hidden="true">{{ step.icon }}</span>
+        <span class="journey__node-no">{{ step.index }}</span>
+      </div>
+
+      <div class="journey__card">
+        <h3 class="journey__title">{{ step.title }}</h3>
+        <p class="journey__desc">{{ step.description }}</p>
+        <a [routerLink]="step.route" class="journey__cta">
+          {{ step.cta }}
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </li>
+  }
+</ol>

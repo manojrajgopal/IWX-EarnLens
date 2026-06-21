@@ -1,0 +1,115 @@
+.journey {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 0 0 0.5rem;
+  list-style: none;
+  counter-reset: journey;
+}
+
+.journey__spine {
+  position: absolute;
+  left: calc(1.6rem + 0.5rem);
+  top: 1.6rem;
+  bottom: 1.6rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--c-emerald),
+    var(--c-indigo),
+    var(--c-violet),
+    var(--c-sky)
+  );
+  opacity: 0.4;
+}
+
+.journey__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  gap: 1.1rem;
+  align-items: flex-start;
+  padding-bottom: 1.8rem;
+}
+.journey__step:last-child {
+  padding-bottom: 0;
+}
+
+.journey__node {
+  position: relative;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card);
+  z-index: 1;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.journey__step:hover .journey__node {
+  transform: scale(1.08);
+  border-color: var(--c-indigo);
+}
+.journey__node-icon {
+  font-size: 1.2rem;
+}
+.journey__node-no {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--c-indigo);
+}
+
+.journey__card {
+  padding: 1.1rem 1.3rem 1.2rem;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.journey__step:hover .journey__card {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-pop);
+}
+.journey__title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+}
+.journey__desc {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.journey__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-indigo);
+  text-decoration: none;
+}
+.journey__cta span {
+  transition: transform 0.25s ease;
+}
+.journey__cta:hover span {
+  transform: translateX(4px);
+}

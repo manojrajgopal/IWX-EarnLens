@@ -57,7 +57,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/app-shell/app-shell.component').then((m) => m.AppShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'welcome' },
+      {
+        path: 'welcome',
+        loadComponent: () =>
+          import('./features/welcome/welcome.component').then((m) => m.WelcomeComponent),
+      },
       {
         path: 'dashboard',
         loadComponent: () =>

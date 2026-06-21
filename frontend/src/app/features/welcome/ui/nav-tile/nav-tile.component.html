@@ -1,0 +1,8 @@
+<a class="ntile" [routerLink]="tile().route" [style.--nt-accent]="tile().accent">
+  <span class="ntile__icon" aria-hidden="true">{{ tile().icon }}</span>
+  <span class="ntile__text">
+    <span class="ntile__label">{{ tile().label }}</span>
+    <span class="ntile__desc">{{ tile().description }}</span>
+  </span>
+  <span class="ntile__arrow" aria-hidden="true">→</span>
+</a>

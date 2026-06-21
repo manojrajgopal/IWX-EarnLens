@@ -10,5 +10,5 @@ export const guestGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) {
     return true;
   }
-  return router.createUrlTree(['/app/dashboard']);
+  return router.createUrlTree(['/app/welcome']);
 };

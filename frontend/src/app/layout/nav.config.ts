@@ -33,6 +33,14 @@ export const HEADER_NAV: NavGroup[] = [
     title: 'Overview',
     items: [
       {
+        label: 'Home',
+        icon: '✦',
+        path: '/app/welcome',
+        children: [
+          { label: 'Welcome', path: '/app/welcome', icon: '✦', description: 'Your guided home base & tour' },
+        ],
+      },
+      {
         label: 'Dashboard',
         icon: '◈',
         path: '/app/dashboard',
@@ -109,6 +117,7 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: 'Overview',
     items: [
+      { label: 'Home', path: '/app/welcome', icon: '✦' },
       { label: 'Dashboard', path: '/app/dashboard', icon: '◈' },
       { label: 'Analytics', path: '/app/analytics', icon: '◴' },
       { label: 'Reports', path: '/app/reports', icon: '▤' },

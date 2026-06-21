@@ -1,0 +1,96 @@
+<div class="film" [style.--film-accent]="activeScene()?.accent || '#4f46e5'">
+  <!-- cinematic frame -->
+  <div class="film__frame">
+    <div class="film__glow" aria-hidden="true"></div>
+
+    <!-- top chrome -->
+    <div class="film__chrome">
+      <span class="film__lights" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="film__chrome-title">EarnLens — The 60-second tour</span>
+      <span class="film__rec" [class.film__rec--live]="playing()">
+        <span class="film__rec-dot" aria-hidden="true"></span>
+        {{ playing() ? 'PLAYING' : finished() ? 'ENDED' : 'READY' }}
+      </span>
+    </div>
+
+    <!-- stage -->
+    <div class="film__stage">
+      <!-- scanline + grain ambience -->
+      <div class="film__scan" aria-hidden="true"></div>
+
+      @if (current() < 0) {
+        <!-- poster / pre-roll -->
+        <div class="film__poster">
+          <span class="film__poster-mark" aria-hidden="true">✦</span>
+          <h3 class="film__poster-title">A short film about your money</h3>
+          <p class="film__poster-sub">
+            Six scenes. Sixty seconds. Everything EarnLens does, beautifully.
+          </p>
+          <button type="button" class="film__big-play" (click)="play()">
+            <span class="film__big-play-ring" aria-hidden="true"></span>
+            <span class="film__big-play-icon" aria-hidden="true">▶</span>
+          </button>
+          <span class="film__poster-hint">Press play to begin</span>
+        </div>
+      } @else if (finished()) {
+        <!-- end card -->
+        <div class="film__poster film__poster--end">
+          <span class="film__poster-mark" aria-hidden="true">✓</span>
+          <h3 class="film__poster-title">That's EarnLens.</h3>
+          <p class="film__poster-sub">Now make it yours — your story starts with one entry.</p>
+          <button type="button" class="film__replay" (click)="replay()">
+            <span aria-hidden="true">↺</span> Watch again
+          </button>
+        </div>
+      } @else if (activeScene(); as scene) {
+        <!-- active scene -->
+        <div class="film__scene" [attr.data-scene]="scene.index">
+          <span class="film__scene-no">Scene {{ scene.index + 1 }} / {{ sceneCount }}</span>
+          <div class="film__scene-icon" aria-hidden="true">{{ scene.icon }}</div>
+          <h3 class="film__scene-title">{{ scene.title }}</h3>
+          <p class="film__scene-caption">{{ scene.caption }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- transport controls -->
+    <div class="film__controls">
+      <button
+        type="button"
+        class="film__btn"
+        (click)="toggle()"
+        [attr.aria-label]="playing() ? 'Pause' : 'Play'"
+      >
+        {{ playing() ? '❚❚' : '▶' }}
+      </button>
+
+      <div class="film__progress">
+        <div class="film__progress-fill" [style.width.%]="progress()"></div>
+      </div>
+
+      <button type="button" class="film__btn" (click)="replay()" aria-label="Replay">
+        ↺
+      </button>
+    </div>
+
+    <!-- scene chapters -->
+    <div class="film__chapters">
+      @for (scene of scenes; track scene.index) {
+        <button
+          type="button"
+          class="film__chapter"
+          [class.film__chapter--active]="current() === scene.index"
+          [class.film__chapter--seen]="current() > scene.index || finished()"
+          (click)="jumpTo(scene.index)"
+          [attr.aria-label]="'Jump to ' + scene.title"
+          [title]="scene.title"
+        >
+          <span class="film__chapter-dot"></span>
+          <span class="film__chapter-label">{{ scene.title }}</span>
+        </button>
+      }
+    </div>
+  </div>
+</div>

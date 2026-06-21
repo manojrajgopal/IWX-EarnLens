@@ -1,0 +1,19 @@
+<div class="navhub">
+  @for (cluster of clusters; track cluster.id; let i = $index) {
+    <section class="navhub__cluster" appReveal [revealDelay]="i * 70">
+      <header class="navhub__cluster-head">
+        <span class="navhub__cluster-icon" aria-hidden="true">{{ cluster.icon }}</span>
+        <div>
+          <h3 class="navhub__cluster-title">{{ cluster.title }}</h3>
+          <p class="navhub__cluster-sub">{{ cluster.subtitle }}</p>
+        </div>
+      </header>
+
+      <div class="navhub__tiles">
+        @for (tile of cluster.tiles; track tile.id) {
+          <app-nav-tile [tile]="tile" />
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -89,6 +89,6 @@ export class LoginComponent {
 
   onLaunchDone(): void {
     this.toast.success('Signed in successfully.');
-    this.router.navigate(['/app/dashboard']);
+    this.router.navigate(['/app/welcome']);
   }
 }

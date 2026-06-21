@@ -1,0 +1,90 @@
+<div class="welcome">
+  <!-- ① opening frame -->
+  <app-welcome-hero
+    [userName]="firstName()"
+    [greeting]="greeting()"
+    [memberSince]="memberSince()"
+  />
+
+  <!-- ② the short film -->
+  <section id="intro-film" class="welcome__anchor">
+    <app-section-shell
+      eyebrow="The tour"
+      title="A short film about EarnLens"
+      subtitle="Press play for a sixty-second, scene-by-scene look at everything the software does for you."
+    >
+      <app-intro-film />
+    </app-section-shell>
+  </section>
+
+  <!-- ③ about you (non-sensitive) -->
+  <app-section-shell
+    eyebrow="About you"
+    title="Your private snapshot"
+    subtitle="A warm hello and a few gentle numbers about your footprint — counts only, never amounts, never graphs."
+  >
+    <app-user-pulse
+      [fullName]="fullName()"
+      [username]="username()"
+      [email]="email()"
+      [currency]="currency()"
+      [memberSince]="memberSince()"
+      [role]="role()"
+      [initials]="initials()"
+      [loading]="metricsLoading()"
+      [metrics]="metrics()"
+    />
+  </app-section-shell>
+
+  <!-- ④ what it does -->
+  <section id="feature-showcase" class="welcome__anchor">
+    <app-section-shell
+      eyebrow="Capabilities"
+      title="Everything EarnLens can do"
+      subtitle="Six pillars of functionality, each a doorway you can step through right now."
+    >
+      <app-feature-showcase />
+    </app-section-shell>
+  </section>
+
+  <!-- ⑤ how to use it -->
+  <app-section-shell
+    eyebrow="How it works"
+    title="From first entry to full clarity"
+    subtitle="Four simple beats. Follow them in order and EarnLens reveals more with every step."
+  >
+    <app-journey />
+  </app-section-shell>
+
+  <!-- ⑥ why it matters -->
+  <app-section-shell
+    eyebrow="Why it matters"
+    title="Built to make you feel in control"
+    subtitle="The real reason EarnLens exists isn't features — it's how those features make your money feel."
+  >
+    <app-why-earnlens />
+  </app-section-shell>
+
+  <!-- ⑦ go anywhere -->
+  <app-section-shell
+    eyebrow="Navigate"
+    title="Every door, in one place"
+    subtitle="The whole application, mapped. Jump straight to anything you need."
+  >
+    <app-navigator />
+  </app-section-shell>
+
+  <!-- ⑧ good to know -->
+  <app-section-shell
+    eyebrow="Good to know"
+    title="Questions, answered"
+    subtitle="The first things most people wonder when they arrive."
+  >
+    <app-welcome-faq />
+  </app-section-shell>
+
+  <!-- ⑨ closing frame -->
+  <app-welcome-finale [userName]="firstName()" />
+
+  <div class="welcome__tail"></div>
+</div>

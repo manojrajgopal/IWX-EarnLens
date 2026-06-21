@@ -13,6 +13,15 @@ export const HEADER_NAV: NavGroup[] = [
     icon: '◧',
     nodes: [
       {
+        label: 'Home',
+        icon: '✦',
+        path: '/app/welcome',
+        description: 'Your guided home base & tour',
+        children: [
+          { label: 'Welcome', icon: '✦', path: '/app/welcome', description: 'Overview, tour & navigation hub' },
+        ],
+      },
+      {
         label: 'Dashboard',
         icon: '◈',
         path: '/app/dashboard',

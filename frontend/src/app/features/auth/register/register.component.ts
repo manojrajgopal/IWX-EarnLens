@@ -142,6 +142,6 @@ export class RegisterComponent implements OnInit {
   onLaunchDone(): void {
     this.draft.clear();
     this.toast.success('Welcome to EarnLens!');
-    this.router.navigate(['/app/dashboard']);
+    this.router.navigate(['/app/welcome']);
   }
 }

@@ -1,0 +1,99 @@
+.why {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.why__card {
+  position: relative;
+  padding: 1.8rem 1.5rem;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.why__card:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-strong);
+}
+
+.why__glow {
+  position: absolute;
+  inset: -50% 50% 50% -50%;
+  z-index: -1;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--c-violet) 22%, transparent),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.why__card:hover .why__glow {
+  opacity: 1;
+}
+
+.why__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  border-radius: 1.1rem;
+  color: var(--c-violet);
+  background: color-mix(in srgb, var(--c-violet) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-violet) 28%, transparent);
+  animation: whyFloat 6s ease-in-out infinite;
+}
+.why__card:nth-child(2) .why__icon {
+  color: var(--c-emerald);
+  background: color-mix(in srgb, var(--c-emerald) 14%, transparent);
+  border-color: color-mix(in srgb, var(--c-emerald) 28%, transparent);
+  animation-delay: 0.4s;
+}
+.why__card:nth-child(3) .why__icon {
+  color: var(--c-sky);
+  background: color-mix(in srgb, var(--c-sky) 14%, transparent);
+  border-color: color-mix(in srgb, var(--c-sky) 28%, transparent);
+  animation-delay: 0.8s;
+}
+.why__card:nth-child(4) .why__icon {
+  color: var(--c-amber);
+  background: color-mix(in srgb, var(--c-amber) 14%, transparent);
+  border-color: color-mix(in srgb, var(--c-amber) 28%, transparent);
+  animation-delay: 1.2s;
+}
+
+.why__title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+.why__desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+@keyframes whyFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .why__icon {
+    animation: none;
+  }
+}

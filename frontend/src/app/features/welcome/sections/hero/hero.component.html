@@ -1,0 +1,50 @@
+<header class="hero">
+  <!-- cinematic background -->
+  <div class="hero__aurora" aria-hidden="true"></div>
+  <div class="hero__grid" aria-hidden="true"></div>
+  <span class="hero__orb hero__orb--a" aria-hidden="true"></span>
+  <span class="hero__orb hero__orb--b" aria-hidden="true"></span>
+  <span class="hero__orb hero__orb--c" aria-hidden="true"></span>
+
+  <div class="hero__inner">
+    <span class="hero__badge">
+      <span class="hero__badge-dot"></span>
+      EarnLens · Your income, in focus
+    </span>
+
+    <h1 class="hero__title">
+      {{ greeting() }},
+      <span class="hero__name">{{ userName() }}</span>
+      <span class="hero__wave" aria-hidden="true">✦</span>
+    </h1>
+
+    <p class="hero__lede">
+      This is your home base — a calm, cinematic overview of everything EarnLens
+      can do for you. Explore the features, learn how it all works, and jump
+      anywhere in a single tap. No numbers to worry about here, just clarity.
+    </p>
+
+    <div class="hero__actions">
+      <a routerLink="/app/dashboard" class="btn btn-primary btn-lg hero__cta">
+        Go to dashboard
+        <span aria-hidden="true">→</span>
+      </a>
+      <a routerLink="/app/income/new" class="btn btn-secondary btn-lg">
+        ＋ Add income
+      </a>
+      <a href="#intro-film" class="btn btn-ghost btn-lg hero__play">
+        <span class="hero__play-icon" aria-hidden="true">▶</span>
+        Watch the tour
+      </a>
+    </div>
+
+    @if (memberSince()) {
+      <p class="hero__since">A member since {{ memberSince() }}</p>
+    }
+  </div>
+
+  <a href="#feature-showcase" class="hero__scroll" aria-label="Scroll to explore">
+    <span class="hero__scroll-mouse"><span class="hero__scroll-dot"></span></span>
+    <span class="hero__scroll-text">Scroll to explore</span>
+  </a>
+</header>

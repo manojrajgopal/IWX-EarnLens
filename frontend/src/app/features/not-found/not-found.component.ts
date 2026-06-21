@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
         <p class="text-secondary mb-8 max-w-sm mx-auto">
           The page you're looking for doesn't exist or has moved.
         </p>
-        <a routerLink="/app/dashboard" class="btn btn-primary">Back to dashboard</a>
+        <a routerLink="/app/welcome" class="btn btn-primary">Back to home</a>
       </div>
     </div>
   `,

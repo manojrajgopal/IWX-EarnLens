@@ -1,0 +1,23 @@
+<a
+  class="fcard"
+  [routerLink]="feature().route"
+  [style.--fc-accent]="feature().accent"
+>
+  <div class="fcard__halo"></div>
+
+  <div class="fcard__icon" aria-hidden="true">{{ feature().icon }}</div>
+
+  <span class="fcard__tagline">{{ feature().tagline }}</span>
+  <h3 class="fcard__title">{{ feature().title }}</h3>
+  <p class="fcard__desc">{{ feature().description }}</p>
+
+  <p class="fcard__benefit">
+    <span class="fcard__benefit-mark" aria-hidden="true">✓</span>
+    {{ feature().benefit }}
+  </p>
+
+  <span class="fcard__cta">
+    {{ feature().cta }}
+    <span class="fcard__arrow" aria-hidden="true">→</span>
+  </span>
+</a>

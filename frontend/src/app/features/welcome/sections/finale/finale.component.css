@@ -1,0 +1,162 @@
+.finale {
+  position: relative;
+  margin: clamp(2rem, 5vw, 4rem) 1.25rem 0;
+  border-radius: var(--r-xl);
+  background: var(--ink-950);
+  color: #fff;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+html.dark .finale {
+  background: #050505;
+  border: 1px solid var(--border-color);
+}
+
+.finale__aurora {
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  background:
+    radial-gradient(35% 45% at 20% 20%, color-mix(in srgb, var(--c-indigo) 55%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 80% 30%, color-mix(in srgb, var(--c-violet) 50%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 60% 90%, color-mix(in srgb, var(--c-sky) 45%, transparent), transparent 70%);
+  filter: blur(30px);
+  opacity: 0.55;
+  animation: finaleAurora 16s ease-in-out infinite alternate;
+}
+
+.finale__spark {
+  position: absolute;
+  color: #fff;
+  opacity: 0.5;
+  font-size: 1.2rem;
+  animation: finaleTwinkle 4s ease-in-out infinite;
+}
+.finale__spark--1 {
+  top: 18%;
+  left: 12%;
+}
+.finale__spark--2 {
+  top: 30%;
+  right: 16%;
+  font-size: 0.9rem;
+  animation-delay: 1.2s;
+}
+.finale__spark--3 {
+  bottom: 22%;
+  left: 22%;
+  font-size: 1.4rem;
+  animation-delay: 2.2s;
+}
+
+.finale__inner {
+  position: relative;
+  text-align: center;
+  padding: clamp(3rem, 7vw, 5.5rem) 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.finale__eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #fff 70%, transparent);
+  margin-bottom: 1.1rem;
+}
+
+.finale__title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  line-height: 1.08;
+  margin: 0;
+  color: #fff;
+}
+
+.finale__sub {
+  margin: 1.2rem auto 0;
+  max-width: 30rem;
+  font-size: clamp(0.98rem, 1.7vw, 1.15rem);
+  line-height: 1.65;
+  color: color-mix(in srgb, #fff 78%, transparent);
+}
+
+.finale__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 2.1rem;
+}
+.finale__cta {
+  background: #fff;
+  color: var(--ink-950);
+}
+.finale__cta:hover {
+  opacity: 0.9;
+}
+.finale .btn-secondary {
+  color: #fff;
+  border-color: color-mix(in srgb, #fff 35%, transparent);
+}
+.finale .btn-secondary:hover {
+  border-color: #fff;
+  background: color-mix(in srgb, #fff 10%, transparent);
+}
+
+.finale__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  margin-top: 2.2rem;
+}
+.finale__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #fff 22%, transparent);
+  color: color-mix(in srgb, #fff 85%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+}
+.finale__chip:hover {
+  background: color-mix(in srgb, #fff 12%, transparent);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+@keyframes finaleAurora {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-3%, 2%, 0) scale(1.1);
+  }
+}
+@keyframes finaleTwinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finale__aurora,
+  .finale__spark {
+    animation: none;
+  }
+}

@@ -1,0 +1,64 @@
+<div class="pulse">
+  <!-- identity card -->
+  <aside class="pulse__id">
+    <div class="pulse__avatar" aria-hidden="true">
+      <span>{{ initials() }}</span>
+      <span class="pulse__avatar-ring"></span>
+    </div>
+    <h3 class="pulse__name">{{ fullName() || 'Your account' }}</h3>
+    @if (username()) {
+      <span class="pulse__handle">&#64;{{ username() }}</span>
+    }
+
+    <dl class="pulse__facts">
+      @if (email()) {
+        <div class="pulse__fact">
+          <dt><span aria-hidden="true">✉</span> Email</dt>
+          <dd>{{ email() }}</dd>
+        </div>
+      }
+      @if (currency()) {
+        <div class="pulse__fact">
+          <dt><span aria-hidden="true">€</span> Currency</dt>
+          <dd>{{ currency() }}</dd>
+        </div>
+      }
+      <div class="pulse__fact">
+        <dt><span aria-hidden="true">◆</span> Plan</dt>
+        <dd class="pulse__role">{{ role() === 'admin' ? 'Administrator' : 'Member' }}</dd>
+      </div>
+      @if (memberSince()) {
+        <div class="pulse__fact">
+          <dt><span aria-hidden="true">⌚</span> Since</dt>
+          <dd>{{ memberSince() }}</dd>
+        </div>
+      }
+    </dl>
+
+    <a routerLink="/app/profile" class="btn btn-secondary btn-sm btn-block">
+      Manage profile →
+    </a>
+  </aside>
+
+  <!-- engagement metrics (non-sensitive counts) -->
+  <div class="pulse__metrics">
+    <p class="pulse__metrics-note">
+      <span class="pulse__lock" aria-hidden="true">🔒</span>
+      A quick, private snapshot of your footprint — counts only, never amounts.
+    </p>
+
+    @if (loading()) {
+      <div class="pulse__grid">
+        @for (n of [1, 2, 3, 4]; track n) {
+          <div class="pulse__skeleton"></div>
+        }
+      </div>
+    } @else {
+      <div class="pulse__grid">
+        @for (metric of metrics(); track metric.id) {
+          <app-metric-chip [metric]="metric" />
+        }
+      </div>
+    }
+  </div>
+</div>

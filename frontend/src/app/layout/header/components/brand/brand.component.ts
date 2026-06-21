@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <a routerLink="/app/dashboard" class="brand">
+    <a routerLink="/app/welcome" class="brand">
       <span class="brand__mark">◆</span>
       <span class="brand__name">EarnLens</span>
     </a>
