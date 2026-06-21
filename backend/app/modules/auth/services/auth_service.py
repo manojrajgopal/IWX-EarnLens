@@ -50,11 +50,27 @@ class AuthService:
         validate_password_strength(payload.password)
         existing = await self.users.get_by_email(payload.email)
         if existing:
-            raise ConflictError("An account with this email already exists.")
+            raise ConflictError(
+                "An account with this email already exists.",
+                details={"field": "email"},
+            )
 
         existing_username = await self.users.get_by_username(payload.username)
         if existing_username:
-            raise ConflictError("This username is already taken.")
+            raise ConflictError(
+                "This username is already taken.",
+                details={"field": "username"},
+            )
+
+        # Normalize phone: strip spaces/dashes for dedup, store original
+        phone_raw = payload.phone.strip()
+        if phone_raw:
+            existing_phone = await self.users.get_by_phone(phone_raw)
+            if existing_phone:
+                raise ConflictError(
+                    "This phone number is already registered.",
+                    details={"field": "phone"},
+                )
 
         user = await self.users.create(
             {
@@ -62,6 +78,7 @@ class AuthService:
                 "username": payload.username.lower(),
                 "hashed_password": hash_password(payload.password),
                 "full_name": payload.full_name.strip(),
+                "phone": phone_raw or None,
                 "role": UserRole.USER.value,
                 "is_active": True,
                 "is_email_verified": False,

@@ -21,6 +21,10 @@ class UserRepository(BaseRepository):
     async def get_by_username(self, username: str) -> Optional[Dict[str, Any]]:
         return await self.get_one({"username": username.lower()})
 
+    async def get_by_phone(self, phone: str) -> Optional[Dict[str, Any]]:
+        """Look up user by phone number (normalized: digits only)."""
+        return await self.get_one({"phone": phone})
+
     async def get_by_identifier(self, identifier: str) -> Optional[Dict[str, Any]]:
         """Look up user by email or username."""
         identifier_lower = identifier.lower()

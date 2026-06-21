@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
@@ -85,15 +86,29 @@ export class RegisterComponent {
       return;
     }
     this.loading.set(true);
-    const { full_name, username, email, password, confirmPassword } = this.form.getRawValue();
-    this.auth.register({ full_name, username, email, password, confirm_password: confirmPassword }).subscribe({
+    const { full_name, username, email, phone, password, confirmPassword } = this.form.getRawValue();
+    this.auth.register({ full_name, username, email, phone, password, confirm_password: confirmPassword }).subscribe({
       next: (result) => {
         this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
         this.loading.set(false);
         this.launching.set(true);
       },
-      error: () => this.loading.set(false),
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.handleServerError(err);
+      },
     });
+  }
+
+  private handleServerError(err: HttpErrorResponse): void {
+    const body = err.error as { error?: { message?: string; details?: { field?: string } } } | null;
+    const field = body?.error?.details?.field;
+    const message = body?.error?.message || 'Registration failed.';
+
+    if (field && this.form.get(field)) {
+      this.form.get(field)!.setErrors({ server: message });
+      this.form.get(field)!.markAsTouched();
+    }
   }
 
   onLaunchDone(): void {

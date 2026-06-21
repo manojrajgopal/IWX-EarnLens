@@ -16,6 +16,7 @@ class UserModel(BaseModel):
     username: str
     hashed_password: str
     full_name: str
+    phone: Optional[str] = None
     role: UserRole = UserRole.USER
     is_active: bool = True
     is_email_verified: bool = False

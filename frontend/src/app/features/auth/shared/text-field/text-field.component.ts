@@ -58,6 +58,10 @@ export class TextFieldComponent {
     const map = this.errors();
     if (!c.errors) return '';
     const key = Object.keys(c.errors)[0];
+    // Server errors carry the message as the value directly
+    if (key === 'server' && typeof c.errors[key] === 'string') {
+      return c.errors[key];
+    }
     return map[key] ?? map['default'] ?? 'This field is invalid.';
   }
 }
