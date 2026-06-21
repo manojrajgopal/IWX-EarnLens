@@ -1,0 +1,106 @@
+.lf {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.lf__row {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: lf-row 0.55s ease forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes lf-row {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lf__between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lf__forgot {
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+.lf__forgot:hover {
+  text-decoration: underline;
+}
+
+/* custom checkbox */
+.lf__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+.lf__check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.lf__check-box {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--r-xs);
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lf__check-box::after {
+  content: '✓';
+  font-size: 0.75rem;
+  color: var(--accent-contrast);
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+.lf__check input:checked + .lf__check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.lf__check input:checked + .lf__check-box::after {
+  transform: scale(1);
+}
+.lf__check input:focus-visible + .lf__check-box {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* submit button */
+.lf__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+.lf__arrow {
+  transition: transform 0.2s ease;
+}
+.lf__submit:hover:not(:disabled) .lf__arrow {
+  transform: translateX(4px);
+}
+
+.lf__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: lf-spin 0.7s linear infinite;
+}
+@keyframes lf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

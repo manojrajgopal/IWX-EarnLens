@@ -1,0 +1,212 @@
+.ba {
+  position: relative;
+  height: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #050505;
+  isolation: isolate;
+}
+
+/* ── Animated aurora gradient ── */
+.ba__aurora {
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  background:
+    radial-gradient(40% 40% at 20% 25%, rgba(120, 120, 255, 0.18), transparent 60%),
+    radial-gradient(35% 35% at 80% 20%, rgba(255, 255, 255, 0.12), transparent 60%),
+    radial-gradient(45% 45% at 70% 85%, rgba(80, 200, 180, 0.16), transparent 60%),
+    radial-gradient(40% 40% at 15% 80%, rgba(255, 120, 180, 0.14), transparent 60%);
+  filter: blur(30px);
+  animation: ba-aurora 18s ease-in-out infinite alternate;
+}
+@keyframes ba-aurora {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) rotate(8deg) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-3%, 3%, 0) rotate(-6deg) scale(1.05);
+  }
+}
+
+/* ── Subtle moving grid ── */
+.ba__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 78%);
+  animation: ba-grid 30s linear infinite;
+}
+@keyframes ba-grid {
+  from {
+    background-position: 0 0, 0 0;
+  }
+  to {
+    background-position: 46px 46px, 46px 46px;
+  }
+}
+
+/* ── Drifting particles ── */
+.ba__particles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.ba__particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: #fff;
+  animation-name: ba-float;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes ba-float {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-105vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+/* ── Content ── */
+.ba__content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  padding: 3rem;
+  color: #fff;
+}
+
+.ba__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  color: #fff;
+  opacity: 0;
+  animation: ba-in 0.7s ease 0.1s forwards;
+}
+.ba__brand-mark {
+  font-size: 1.5rem;
+}
+.ba__brand-name {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.ba__mid {
+  margin-top: auto;
+}
+
+.ba__headline {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.25rem;
+  opacity: 0;
+  animation: ba-in 0.8s ease 0.25s forwards;
+}
+
+/* rotating word */
+.ba__rotator {
+  position: relative;
+  display: inline-block;
+  min-height: 1.1em;
+}
+.ba__word {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(0.5em) rotateX(-40deg);
+  transform-origin: bottom;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  background: linear-gradient(100deg, #fff, rgba(255, 255, 255, 0.55));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ba__word--active {
+  opacity: 1;
+  transform: translateY(0) rotateX(0);
+}
+
+.ba__lede {
+  max-width: 30rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  line-height: 1.65;
+  margin: 0;
+  opacity: 0;
+  animation: ba-in 0.8s ease 0.4s forwards;
+}
+
+/* ── Stats ── */
+.ba__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin-top: 2.75rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  animation: ba-in 0.8s ease 0.55s forwards;
+}
+.ba__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.ba__stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+}
+.ba__stat-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes ba-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ba__aurora,
+  .ba__grid,
+  .ba__particle {
+    animation: none;
+  }
+}

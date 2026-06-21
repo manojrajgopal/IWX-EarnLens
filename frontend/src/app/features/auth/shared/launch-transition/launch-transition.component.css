@@ -1,0 +1,220 @@
+.lt {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: #050505;
+  overflow: hidden;
+  animation: lt-bg-in 0.5s ease both;
+}
+@keyframes lt-bg-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── warp tunnel ── */
+.lt__warp {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(120, 120, 255, 0.22), transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(80, 200, 180, 0.18), transparent 48%),
+    radial-gradient(circle at 50% 50%, rgba(255, 120, 180, 0.16), transparent 60%);
+  filter: blur(20px);
+  opacity: 0;
+  transform: scale(0.6);
+  animation: lt-warp 2s ease-out both;
+}
+@keyframes lt-warp {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1.4) rotate(40deg);
+  }
+}
+
+/* ── radial light rays ── */
+.lt__rays {
+  position: absolute;
+  width: 200vmax;
+  height: 200vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.05) 0deg 2deg,
+    transparent 2deg 12deg
+  );
+  opacity: 0;
+  animation: lt-rays 2.2s linear both;
+}
+@keyframes lt-rays {
+  0% {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.4);
+  }
+  35% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(90deg) scale(1.1);
+  }
+}
+
+/* ── core: ring + logo ── */
+.lt__core {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.lt__ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.4);
+  animation: lt-ring-in 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) 0.15s both;
+}
+@keyframes lt-ring-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lt__ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.lt__ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 3;
+}
+.lt__ring-progress {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 339;
+  stroke-dashoffset: 339;
+  animation: lt-progress 1.5s ease 0.3s forwards;
+}
+@keyframes lt-progress {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.lt__mark {
+  font-size: 2.4rem;
+  color: #fff;
+  animation: lt-mark 2s ease infinite;
+}
+@keyframes lt-mark {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    transform: scale(1.12) rotate(180deg);
+    text-shadow: 0 0 28px rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* ── greeting text ── */
+.lt__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: lt-text-in 0.7s ease 0.6s both;
+}
+@keyframes lt-text-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lt__hello {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.lt__name {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+.lt__sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── final wipe reveal ── */
+.lt__wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--bg-page);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+.lt[data-stage='2'] .lt__wipe {
+  animation: lt-wipe 0.7s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+@keyframes lt-wipe {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* fade core on exit */
+.lt[data-stage='2'] .lt__core {
+  animation: lt-core-out 0.5s ease forwards;
+}
+@keyframes lt-core-out {
+  to {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lt__warp,
+  .lt__rays,
+  .lt__mark {
+    animation-duration: 0.01s;
+  }
+}

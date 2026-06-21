@@ -1,44 +1,22 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+import { BrandAsideComponent } from '../shared/brand-aside/brand-aside.component';
 
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, BrandAsideComponent],
   template: `
-    <div class="min-h-screen grid lg:grid-cols-2">
-      <!-- brand panel -->
-      <div class="auth-aside hidden lg:flex">
-        <div class="relative z-10 flex flex-col h-full p-12">
-          <a routerLink="/" class="flex items-center gap-2 text-white">
-            <span class="text-2xl">◆</span>
-            <span class="font-serif text-2xl font-bold">EarnLens</span>
-          </a>
-          <div class="mt-auto">
-            <h2 class="font-serif text-4xl font-bold text-white leading-tight">
-              Clarity for every<br />dollar you earn.
-            </h2>
-            <p class="text-white/70 mt-4 max-w-md">
-              Track, categorize and analyze your income streams with a calm, focused workspace
-              built for people who care about the details.
-            </p>
-          </div>
-          <div class="mt-10 flex gap-8 text-white/80">
-            <div>
-              <p class="text-2xl font-bold text-white">Multi-source</p>
-              <p class="text-sm">income tracking</p>
-            </div>
-            <div>
-              <p class="text-2xl font-bold text-white">Live</p>
-              <p class="text-sm">analytics & trends</p>
-            </div>
-          </div>
-        </div>
+    <div class="auth">
+      <!-- cinematic brand panel -->
+      <div class="auth__aside">
+        <app-brand-aside />
       </div>
 
       <!-- form panel -->
-      <div class="flex items-center justify-center p-6 sm:p-10 bg-[var(--bg-page)]">
-        <div class="w-full max-w-md">
+      <div class="auth__panel">
+        <div class="auth__panel-glow"></div>
+        <div class="auth__form">
           <router-outlet />
         </div>
       </div>
@@ -46,19 +24,74 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   `,
   styles: [
     `
-      .auth-aside {
+      .auth {
+        display: grid;
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: var(--bg-page);
+      }
+      @media (min-width: 1024px) {
+        .auth {
+          grid-template-columns: 1.05fr 1fr;
+        }
+      }
+
+      .auth__aside {
+        display: none;
+      }
+      @media (min-width: 1024px) {
+        .auth__aside {
+          display: block;
+        }
+      }
+
+      .auth__panel {
         position: relative;
-        background: #0a0a0a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
         overflow: hidden;
       }
-      .auth-aside::after {
-        content: '';
+      @media (min-width: 640px) {
+        .auth__panel {
+          padding: 2.5rem;
+        }
+      }
+
+      /* soft moving glow so the form side is never empty */
+      .auth__panel-glow {
         position: absolute;
         inset: 0;
+        z-index: 0;
+        pointer-events: none;
         background:
-          radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.08), transparent 42%),
-          radial-gradient(circle at 8% 92%, rgba(255, 255, 255, 0.05), transparent 38%),
-          repeating-linear-gradient(135deg, transparent 0 22px, rgba(255, 255, 255, 0.018) 22px 23px);
+          radial-gradient(38% 30% at 85% 8%, var(--accent-soft), transparent 70%),
+          radial-gradient(34% 28% at 10% 92%, var(--accent-soft), transparent 70%);
+        opacity: 0.7;
+        animation: auth-glow 14s ease-in-out infinite alternate;
+      }
+      @keyframes auth-glow {
+        from {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        to {
+          transform: translate3d(2%, -2%, 0) scale(1.1);
+        }
+      }
+
+      .auth__form {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 27rem;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .auth__panel-glow {
+          animation: none;
+        }
       }
     `,
   ],

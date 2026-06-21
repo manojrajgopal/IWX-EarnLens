@@ -1,0 +1,117 @@
+.rf {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rf__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 480px) {
+  .rf__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.rf__row {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: rf-row 0.5s ease forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes rf-row {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rf__mismatch {
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--negative);
+}
+
+/* terms checkbox */
+.rf__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.4;
+}
+.rf__terms a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.rf__terms a:hover {
+  text-decoration: underline;
+}
+.rf__terms input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.rf__terms-box {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--r-xs);
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.rf__terms-box::after {
+  content: '✓';
+  font-size: 0.75rem;
+  color: var(--accent-contrast);
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+.rf__terms input:checked + .rf__terms-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.rf__terms input:checked + .rf__terms-box::after {
+  transform: scale(1);
+}
+.rf__terms--error .rf__terms-box {
+  border-color: var(--negative);
+}
+
+/* submit */
+.rf__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+.rf__arrow {
+  transition: transform 0.2s ease;
+}
+.rf__submit:hover:not(:disabled) .rf__arrow {
+  transform: translateX(4px);
+}
+.rf__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: rf-spin 0.7s linear infinite;
+}
+@keyframes rf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

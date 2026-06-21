@@ -1,13 +1,33 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthHeadingComponent } from '../shared/auth-heading/auth-heading.component';
+import { AuthSwitchComponent } from '../shared/auth-switch/auth-switch.component';
+import { LaunchTransitionComponent } from '../shared/launch-transition/launch-transition.component';
+import {
+  passwordMatch,
+  phone,
+  strongPassword,
+  username,
+} from '../shared/validators/auth.validators';
+import { RegisterFormComponent } from './components/register-form/register-form.component';
 
+/**
+ * Registration page — orchestrates the heading, the presentational
+ * <app-register-form> (with extended fields + validation) and the
+ * cinematic launch transition shown on success.
+ */
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    AuthHeadingComponent,
+    RegisterFormComponent,
+    AuthSwitchComponent,
+    LaunchTransitionComponent,
+  ],
   template: `
     <div class="animate-in">
       <div class="lg:hidden flex items-center gap-2 mb-8">
@@ -15,44 +35,25 @@ import { ToastService } from '../../../core/services/toast.service';
         <span class="font-serif text-2xl font-bold">EarnLens</span>
       </div>
 
-      <h1 class="font-serif text-4xl font-bold mb-2">Create account</h1>
-      <p class="text-secondary mb-8">Start tracking your income in minutes.</p>
+      <app-auth-heading
+        kicker="Get started"
+        title="Create account"
+        subtitle="Start tracking your income in minutes."
+      />
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
-        <div>
-          <label class="field-label">Full name</label>
-          <input class="input" formControlName="full_name" placeholder="Jane Doe" />
-          @if (invalid('full_name')) {
-            <p class="error-text">Name is required.</p>
-          }
-        </div>
+      <app-register-form [form]="form" [loading]="loading()" (submitted)="submit()" />
 
-        <div>
-          <label class="field-label">Email</label>
-          <input class="input" type="email" formControlName="email" placeholder="you@example.com" />
-          @if (invalid('email')) {
-            <p class="error-text">Enter a valid email.</p>
-          }
-        </div>
-
-        <div>
-          <label class="field-label">Password</label>
-          <input class="input" type="password" formControlName="password" placeholder="Min. 8 characters" />
-          @if (invalid('password')) {
-            <p class="error-text">Password must be at least 8 characters.</p>
-          }
-        </div>
-
-        <button class="btn-primary w-full" [disabled]="loading()">
-          {{ loading() ? 'Creating account…' : 'Create account' }}
-        </button>
-      </form>
-
-      <p class="text-sm text-secondary mt-6 text-center">
-        Already have an account?
-        <a routerLink="/login" class="text-[var(--accent)] font-medium hover:underline">Sign in</a>
-      </p>
+      <app-auth-switch prompt="Already have an account?" action="Sign in" link="/login" />
     </div>
+
+    @if (launching()) {
+      <app-launch-transition
+        greeting="Welcome to EarnLens,"
+        [name]="displayName()"
+        message="Setting up your account…"
+        (done)="onLaunchDone()"
+      />
+    }
   `,
 })
 export class RegisterComponent {
@@ -62,17 +63,21 @@ export class RegisterComponent {
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
+  readonly launching = signal(false);
+  readonly displayName = signal('');
 
-  readonly form = this.fb.nonNullable.group({
-    full_name: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-  });
-
-  invalid(name: string): boolean {
-    const control = this.form.get(name);
-    return !!control && control.invalid && (control.dirty || control.touched);
-  }
+  readonly form = this.fb.nonNullable.group(
+    {
+      full_name: ['', [Validators.required, Validators.minLength(2)]],
+      username: ['', [Validators.required, username()]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, phone()]],
+      password: ['', [Validators.required, strongPassword(8)]],
+      confirmPassword: ['', [Validators.required]],
+      terms: [false, [Validators.requiredTrue]],
+    },
+    { validators: passwordMatch('password', 'confirmPassword') },
+  );
 
   submit(): void {
     if (this.form.invalid) {
@@ -80,12 +85,19 @@ export class RegisterComponent {
       return;
     }
     this.loading.set(true);
-    this.auth.register(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.toast.success('Welcome to EarnLens!');
-        this.router.navigate(['/app/dashboard']);
+    const { full_name, email, password } = this.form.getRawValue();
+    this.auth.register({ full_name, email, password }).subscribe({
+      next: (result) => {
+        this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
+        this.loading.set(false);
+        this.launching.set(true);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  onLaunchDone(): void {
+    this.toast.success('Welcome to EarnLens!');
+    this.router.navigate(['/app/dashboard']);
   }
 }

@@ -1,0 +1,69 @@
+import { Component, input, output } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { TextFieldComponent } from '../../../shared/text-field/text-field.component';
+import { PasswordFieldComponent } from '../../../shared/password-field/password-field.component';
+
+/** Presentational sign-in form. Owns no state — driven by the parent. */
+@Component({
+  selector: 'app-login-form',
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink, TextFieldComponent, PasswordFieldComponent],
+  template: `
+    <form [formGroup]="form()" (ngSubmit)="submitted.emit()" class="lf">
+      <div class="lf__row" style="--d: 0.1s">
+        <app-text-field
+          [control]="ctrl('email')"
+          label="Email"
+          type="email"
+          icon="✉"
+          placeholder="you@example.com"
+          autocomplete="email"
+          inputmode="email"
+          [errors]="{ required: 'Email is required.', email: 'Enter a valid email address.' }"
+        />
+      </div>
+
+      <div class="lf__row" style="--d: 0.18s">
+        <app-password-field
+          [control]="ctrl('password')"
+          label="Password"
+          autocomplete="current-password"
+          [errors]="{ required: 'Password is required.' }"
+        >
+          <a action routerLink="/forgot-password" class="lf__forgot">Forgot password?</a>
+        </app-password-field>
+      </div>
+
+      <div class="lf__row lf__between" style="--d: 0.26s">
+        <label class="lf__check">
+          <input type="checkbox" [formControl]="ctrl('remember')" />
+          <span class="lf__check-box"></span>
+          <span>Remember me</span>
+        </label>
+      </div>
+
+      <div class="lf__row" style="--d: 0.34s">
+        <button class="btn-primary lf__submit" type="submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="lf__spinner"></span>
+            <span>Signing in…</span>
+          } @else {
+            <span>Sign in</span>
+            <span class="lf__arrow">→</span>
+          }
+        </button>
+      </div>
+    </form>
+  `,
+  styleUrl: './login-form.component.css',
+})
+export class LoginFormComponent {
+  readonly form = input.required<FormGroup>();
+  readonly loading = input(false);
+  readonly submitted = output<void>();
+
+  ctrl(name: string): FormControl {
+    return this.form().get(name) as FormControl;
+  }
+}

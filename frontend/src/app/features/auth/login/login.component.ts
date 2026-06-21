@@ -1,13 +1,27 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthHeadingComponent } from '../shared/auth-heading/auth-heading.component';
+import { AuthSwitchComponent } from '../shared/auth-switch/auth-switch.component';
+import { LaunchTransitionComponent } from '../shared/launch-transition/launch-transition.component';
+import { LoginFormComponent } from './components/login-form/login-form.component';
 
+/**
+ * Sign-in page — orchestrates the heading, the presentational
+ * <app-login-form>, the switch link and the cinematic launch
+ * transition shown on success before navigating to the dashboard.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    AuthHeadingComponent,
+    LoginFormComponent,
+    AuthSwitchComponent,
+    LaunchTransitionComponent,
+  ],
   template: `
     <div class="animate-in">
       <div class="lg:hidden flex items-center gap-2 mb-8">
@@ -15,43 +29,29 @@ import { ToastService } from '../../../core/services/toast.service';
         <span class="font-serif text-2xl font-bold">EarnLens</span>
       </div>
 
-      <h1 class="font-serif text-4xl font-bold mb-2">Welcome back</h1>
-      <p class="text-secondary mb-8">Sign in to continue to your dashboard.</p>
+      <app-auth-heading
+        kicker="Sign in"
+        title="Welcome back"
+        subtitle="Sign in to continue to your dashboard."
+      />
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
-        <div>
-          <label class="field-label">Email</label>
-          <input class="input" type="email" formControlName="email" placeholder="you@example.com" />
-          @if (invalid('email')) {
-            <p class="error-text">Enter a valid email.</p>
-          }
-        </div>
+      <app-login-form [form]="form" [loading]="loading()" (submitted)="submit()" />
 
-        <div>
-          <div class="flex items-center justify-between">
-            <label class="field-label">Password</label>
-            <a routerLink="/forgot-password" class="text-xs text-[var(--accent)] hover:underline">
-              Forgot password?
-            </a>
-          </div>
-          <input class="input" type="password" formControlName="password" placeholder="••••••••" />
-          @if (invalid('password')) {
-            <p class="error-text">Password is required.</p>
-          }
-        </div>
-
-        <button class="btn-primary w-full" [disabled]="loading()">
-          {{ loading() ? 'Signing in…' : 'Sign in' }}
-        </button>
-      </form>
-
-      <p class="text-sm text-secondary mt-6 text-center">
-        Don't have an account?
-        <a routerLink="/register" class="text-[var(--accent)] font-medium hover:underline">
-          Create one
-        </a>
-      </p>
+      <app-auth-switch
+        prompt="Don't have an account?"
+        action="Create one"
+        link="/register"
+      />
     </div>
+
+    @if (launching()) {
+      <app-launch-transition
+        greeting="Welcome back,"
+        [name]="displayName()"
+        message="Preparing your workspace…"
+        (done)="onLaunchDone()"
+      />
+    }
   `,
 })
 export class LoginComponent {
@@ -61,16 +61,14 @@ export class LoginComponent {
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
+  readonly launching = signal(false);
+  readonly displayName = signal('');
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
+    remember: [true],
   });
-
-  invalid(name: string): boolean {
-    const control = this.form.get(name);
-    return !!control && control.invalid && (control.dirty || control.touched);
-  }
 
   submit(): void {
     if (this.form.invalid) {
@@ -78,12 +76,19 @@ export class LoginComponent {
       return;
     }
     this.loading.set(true);
-    this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.toast.success('Signed in successfully.');
-        this.router.navigate(['/app/dashboard']);
+    const { email, password } = this.form.getRawValue();
+    this.auth.login({ email, password }).subscribe({
+      next: (result) => {
+        this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
+        this.loading.set(false);
+        this.launching.set(true);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  onLaunchDone(): void {
+    this.toast.success('Signed in successfully.');
+    this.router.navigate(['/app/dashboard']);
   }
 }
