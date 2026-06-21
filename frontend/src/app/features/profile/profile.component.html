@@ -12,6 +12,7 @@
         <span class="profile-avatar">{{ initials() }}</span>
         <div class="min-w-0 flex-1">
           <p class="font-serif text-xl font-bold truncate">{{ user()?.full_name }}</p>
+          <p class="text-sm text-secondary truncate">{{ user()?.username }}</p>
           <p class="text-sm text-muted truncate">{{ user()?.email }}</p>
           <p class="text-xs text-muted mt-1">
             Member since {{ user()?.created_at | timeAgo }}
@@ -90,18 +91,30 @@
       </div>
     </div>
 
-    <!-- right sidebar — account info -->
+    <!-- right sidebar — full account details -->
     <div class="lg:col-span-1 flex flex-col gap-6">
       <div class="card card-pad">
-        <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Account summary</h3>
+        <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Account details</h3>
         <div class="space-y-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Username</span>
+            <span class="font-medium font-mono text-xs truncate ml-2 max-w-[180px]">{{ user()?.username }}</span>
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
           <div class="flex items-center justify-between text-sm">
             <span class="text-secondary">Email</span>
             <span class="font-medium truncate ml-2 max-w-[180px]">{{ user()?.email }}</span>
           </div>
           <div class="h-px bg-[var(--border-color)]"></div>
+          @if (user()?.phone) {
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-secondary">Phone</span>
+              <span class="font-medium">{{ user()?.phone }}</span>
+            </div>
+            <div class="h-px bg-[var(--border-color)]"></div>
+          }
           <div class="flex items-center justify-between text-sm">
-            <span class="text-secondary">Status</span>
+            <span class="text-secondary">Email status</span>
             @if (user()?.is_email_verified) {
               <span class="badge text-positive">Verified</span>
             } @else {
@@ -110,14 +123,45 @@
           </div>
           <div class="h-px bg-[var(--border-color)]"></div>
           <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Account status</span>
+            @if (user()?.is_active) {
+              <span class="badge text-positive">Active</span>
+            } @else {
+              <span class="badge text-negative">Inactive</span>
+            }
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Role</span>
+            <span class="badge">{{ user()?.role | uppercase }}</span>
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
             <span class="text-secondary">Currency</span>
             <span class="font-medium">{{ user()?.default_currency }}</span>
           </div>
-          <div class="h-px bg-[var(--border-color)]"></div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Activity</h3>
+        <div class="space-y-3">
           <div class="flex items-center justify-between text-sm">
             <span class="text-secondary">Joined</span>
             <span class="font-medium">{{ user()?.created_at | timeAgo }}</span>
           </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Last login</span>
+            <span class="font-medium">{{ user()?.last_login_at ? (user()!.last_login_at | timeAgo) : 'Never' }}</span>
+          </div>
+          @if (user()?.avatar_url) {
+            <div class="h-px bg-[var(--border-color)]"></div>
+            <div class="text-sm">
+              <span class="text-secondary block mb-1">Avatar</span>
+              <img [src]="user()!.avatar_url" alt="Avatar" class="w-12 h-12 rounded-full object-cover border border-[var(--border-color)]" />
+            </div>
+          }
         </div>
       </div>
 

@@ -3,6 +3,7 @@ export interface User {
   email: string;
   username: string;
   full_name: string;
+  phone?: string | null;
   role: 'user' | 'admin';
   is_active: boolean;
   is_email_verified: boolean;
@@ -10,6 +11,7 @@ export interface User {
   default_currency: string;
   last_login_at?: string | null;
   created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface TokenPair {
