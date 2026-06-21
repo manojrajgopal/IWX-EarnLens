@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CURRENCY_OPTIONS } from '../../core/constants/app.constants';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
+import { passwordMatch } from '../auth/shared/validators/auth.validators';
 
 @Component({
   selector: 'app-profile',
@@ -35,10 +36,14 @@ export class ProfileComponent implements OnInit {
     avatar_url: [''],
   });
 
-  readonly passwordForm = this.fb.nonNullable.group({
-    current_password: ['', [Validators.required]],
-    new_password: ['', [Validators.required, Validators.minLength(8)]],
-  });
+  readonly passwordForm = this.fb.nonNullable.group(
+    {
+      current_password: ['', [Validators.required]],
+      new_password: ['', [Validators.required, Validators.minLength(8)]],
+      confirm_new_password: ['', [Validators.required]],
+    },
+    { validators: passwordMatch('new_password', 'confirm_new_password') },
+  );
 
   ngOnInit(): void {
     const u = this.user();
@@ -81,7 +86,7 @@ export class ProfileComponent implements OnInit {
     this.profileApi.changePassword(this.passwordForm.getRawValue()).subscribe({
       next: () => {
         this.toast.success('Password changed.');
-        this.passwordForm.reset({ current_password: '', new_password: '' });
+        this.passwordForm.reset({ current_password: '', new_password: '', confirm_new_password: '' });
         this.savingPassword.set(false);
       },
       error: () => this.savingPassword.set(false),

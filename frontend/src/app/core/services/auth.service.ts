@@ -52,8 +52,8 @@ export class AuthService {
       .pipe(map((r) => r.data));
   }
 
-  resetPassword(token: string, new_password: string): Observable<unknown> {
-    return this.http.post(`${this.base}/reset-password`, { token, new_password });
+  resetPassword(token: string, new_password: string, confirm_new_password: string): Observable<unknown> {
+    return this.http.post(`${this.base}/reset-password`, { token, new_password, confirm_new_password });
   }
 
   logout(redirect = true): void {

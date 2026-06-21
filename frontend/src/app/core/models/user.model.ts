@@ -28,6 +28,7 @@ export interface RegisterPayload {
   username: string;
   email: string;
   password: string;
+  confirm_password: string;
 }
 
 export interface LoginPayload {
@@ -44,4 +45,5 @@ export interface ProfileUpdate {
 export interface PasswordChange {
   current_password: string;
   new_password: string;
+  confirm_new_password: string;
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, model_validator
 
 from app.core.constants import UserRole
 from app.shared.schemas import BaseSchema
@@ -37,3 +37,10 @@ class UserUpdate(BaseSchema):
 class PasswordChange(BaseSchema):
     current_password: str = Field(min_length=6, max_length=128)
     new_password: str = Field(min_length=6, max_length=128)
+    confirm_new_password: str = Field(min_length=6, max_length=128)
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "PasswordChange":
+        if self.new_password != self.confirm_new_password:
+            raise ValueError("Passwords do not match.")
+        return self

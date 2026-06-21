@@ -71,6 +71,16 @@
               <p class="error-text">At least 8 characters.</p>
             }
           </div>
+          <div>
+            <label class="field-label">Confirm new password</label>
+            <input class="input" type="password" formControlName="confirm_new_password" />
+            @if (invalid('password', 'confirm_new_password')) {
+              <p class="error-text">Required.</p>
+            }
+            @if (passwordForm.hasError('passwordMismatch') && !invalid('password', 'confirm_new_password')) {
+              <p class="error-text">Passwords do not match.</p>
+            }
+          </div>
           <div class="sm:col-span-2 flex justify-end">
             <button class="btn btn-secondary" [disabled]="savingPassword()">
               {{ savingPassword() ? 'Updating…' : 'Update password' }}

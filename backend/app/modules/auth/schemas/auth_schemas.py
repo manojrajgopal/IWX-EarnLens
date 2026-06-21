@@ -1,7 +1,7 @@
 """Authentication request/response schemas (DTOs)."""
 from __future__ import annotations
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, model_validator
 
 from app.modules.users.schemas.user_schemas import UserPublic
 from app.shared.schemas import BaseSchema
@@ -12,6 +12,13 @@ class RegisterRequest(BaseSchema):
     username: str = Field(min_length=3, max_length=20, pattern=r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
+    confirm_password: str = Field(min_length=6, max_length=128)
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "RegisterRequest":
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match.")
+        return self
 
 
 class LoginRequest(BaseSchema):
@@ -47,6 +54,13 @@ class ForgotPasswordRequest(BaseSchema):
 class ResetPasswordRequest(BaseSchema):
     token: str
     new_password: str = Field(min_length=6, max_length=128)
+    confirm_new_password: str = Field(min_length=6, max_length=128)
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "ResetPasswordRequest":
+        if self.new_password != self.confirm_new_password:
+            raise ValueError("Passwords do not match.")
+        return self
 
 
 class VerifyEmailRequest(BaseSchema):

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { passwordMatch } from '../shared/validators/auth.validators';
 
 @Component({
   selector: 'app-reset-password',
@@ -28,6 +29,16 @@ import { ToastService } from '../../../core/services/toast.service';
             <p class="error-text">Password must be at least 8 characters.</p>
           }
         </div>
+        <div>
+          <label class="field-label">Confirm new password</label>
+          <input class="input" type="password" formControlName="confirm_new_password" placeholder="Re-enter password" />
+          @if (invalid('confirm_new_password')) {
+            <p class="error-text">Please confirm your password.</p>
+          }
+          @if (form.hasError('passwordMismatch') && !invalid('confirm_new_password')) {
+            <p class="error-text">Passwords do not match.</p>
+          }
+        </div>
         <button class="btn-primary w-full" [disabled]="loading()">
           {{ loading() ? 'Updating…' : 'Update password' }}
         </button>
@@ -50,10 +61,14 @@ export class ResetPasswordComponent {
 
   readonly loading = signal(false);
 
-  readonly form = this.fb.nonNullable.group({
-    token: [this.route.snapshot.queryParamMap.get('token') ?? '', [Validators.required]],
-    new_password: ['', [Validators.required, Validators.minLength(8)]],
-  });
+  readonly form = this.fb.nonNullable.group(
+    {
+      token: [this.route.snapshot.queryParamMap.get('token') ?? '', [Validators.required]],
+      new_password: ['', [Validators.required, Validators.minLength(8)]],
+      confirm_new_password: ['', [Validators.required]],
+    },
+    { validators: passwordMatch('new_password', 'confirm_new_password') },
+  );
 
   invalid(name: string): boolean {
     const control = this.form.get(name);
@@ -66,8 +81,8 @@ export class ResetPasswordComponent {
       return;
     }
     this.loading.set(true);
-    const { token, new_password } = this.form.getRawValue();
-    this.auth.resetPassword(token, new_password).subscribe({
+    const { token, new_password, confirm_new_password } = this.form.getRawValue();
+    this.auth.resetPassword(token, new_password, confirm_new_password).subscribe({
       next: () => {
         this.toast.success('Password updated. Please sign in.');
         this.router.navigate(['/login']);
