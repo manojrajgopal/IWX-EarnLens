@@ -52,6 +52,12 @@ export const routes: Routes = [
       import('./features/legal/privacy/pages/privacy.component').then((m) => m.PrivacyComponent),
   },
   {
+    path: 'app/welcome',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/welcome/welcome.component').then((m) => m.WelcomeComponent),
+  },
+  {
     path: 'app',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -60,8 +66,8 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'welcome' },
       {
         path: 'welcome',
-        loadComponent: () =>
-          import('./features/welcome/welcome.component').then((m) => m.WelcomeComponent),
+        redirectTo: '/app/welcome',
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',

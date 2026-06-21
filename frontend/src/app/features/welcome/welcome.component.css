@@ -1,10 +1,22 @@
+:host {
+  display: block;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  background: var(--bg-page);
+}
+:host::-webkit-scrollbar {
+  display: none;
+}
+
 .welcome {
   width: 100%;
 }
 
-/* offset anchors so in-page jumps clear the app header */
+/* offset anchors so in-page jumps clear nothing (no header) */
 .welcome__anchor {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 0;
 }
 
 /* shared scroll-reveal behaviour for [appReveal] elements */
