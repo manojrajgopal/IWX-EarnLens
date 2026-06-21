@@ -9,7 +9,7 @@ from app.shared.schemas import BaseSchema
 
 class RegisterRequest(BaseSchema):
     full_name: str = Field(min_length=1, max_length=120)
-    username: str = Field(min_length=3, max_length=20, pattern=r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
+    username: str = Field(min_length=3, max_length=20, pattern=r"^[a-z][a-z0-9]{2,19}$")
     email: EmailStr
     phone: str = Field(min_length=7, max_length=20, pattern=r"^\+?[0-9\s\-()]{7,20}$")
     password: str = Field(min_length=6, max_length=128)

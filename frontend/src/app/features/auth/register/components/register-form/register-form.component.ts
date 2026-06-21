@@ -31,9 +31,11 @@ import { LegalAcceptanceService } from '../../../../legal/shared/services/legal-
             icon="@"
             placeholder="janedoe"
             autocomplete="username"
+            [lowercase]="true"
+            [inputFilter]="usernameFilter"
             [errors]="{
               required: 'Username is required.',
-              username: '3-20 chars, start with a letter.'
+              username: '3-20 chars, lowercase letters & numbers only.'
             }"
           />
         </div>
@@ -138,6 +140,9 @@ export class RegisterFormComponent {
 
   /** True when both legal documents have been accepted in this session. */
   readonly canCheck = computed(() => this.acceptance.termsAccepted() && this.acceptance.privacyAccepted());
+
+  /** Only allow lowercase letters and numbers in username. */
+  readonly usernameFilter = /a-z0-9/;
 
   /** Shake animation trigger. */
   readonly shaking = signal(false);

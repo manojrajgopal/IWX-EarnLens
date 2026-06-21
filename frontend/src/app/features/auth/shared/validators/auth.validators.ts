@@ -31,9 +31,9 @@ export function strongPassword(min = 8): ValidatorFn {
   };
 }
 
-/** Username: 3-20 chars, letters/numbers/underscore, starts with a letter. */
+/** Username: 3-20 chars, lowercase letters and numbers only, starts with a letter. */
 export function username(): ValidatorFn {
-  const re = /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/;
+  const re = /^[a-z][a-z0-9]{2,19}$/;
   return (control: AbstractControl): ValidationErrors | null => {
     const value: string = control.value ?? '';
     if (!value) return null;

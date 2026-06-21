@@ -24,6 +24,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
           [formControl]="control()"
           [attr.autocomplete]="autocomplete()"
           [attr.inputmode]="inputmode()"
+          (input)="onInput($event)"
         />
         <ng-content select="[suffix]" />
       </div>
@@ -45,6 +46,10 @@ export class TextFieldComponent {
   readonly autocomplete = input<string | null>(null);
   readonly inputmode = input<string | null>(null);
   readonly errors = input<Record<string, string>>({});
+  /** Regex filter: only characters matching this pattern are kept on input. */
+  readonly inputFilter = input<RegExp | null>(null);
+  /** Auto-lowercase the input value. */
+  readonly lowercase = input(false);
 
   readonly fieldId = computed(() => 'tf-' + Math.random().toString(36).slice(2, 8));
 
@@ -63,5 +68,24 @@ export class TextFieldComponent {
       return c.errors[key];
     }
     return map[key] ?? map['default'] ?? 'This field is invalid.';
+  }
+
+  onInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+
+    if (this.lowercase()) {
+      value = value.toLowerCase();
+    }
+
+    const filter = this.inputFilter();
+    if (filter) {
+      value = value.replace(new RegExp(`[^${filter.source}]`, 'g'), '');
+    }
+
+    if (value !== input.value) {
+      input.value = value;
+      this.control().setValue(value, { emitEvent: true });
+    }
   }
 }
