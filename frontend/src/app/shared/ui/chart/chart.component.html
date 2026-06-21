@@ -1,110 +1,160 @@
-@if (!series().length || !labels().length) {
-  <div class="flex items-center justify-center text-muted text-sm" [style.height.px]="viewH">
-    No data to plot for this range.
-  </div>
+@if (!hasData()) {
+  <div class="chart-empty" [style.height.px]="svgH()">No data to plot for this range.</div>
 } @else {
-  <div class="chart-wrap">
-    <svg
-      #svg
-      [attr.viewBox]="'0 0 ' + viewW + ' ' + viewH"
-      preserveAspectRatio="none"
-      class="chart-svg"
-      (mousemove)="onMove($event, $any(svg))"
-      (mouseleave)="clearHover()"
-    >
-      <!-- grid + y axis -->
-      @for (tick of yTicks(); track tick.value) {
-        <line
-          [attr.x1]="padLeft"
-          [attr.x2]="viewW - 24"
-          [attr.y1]="tick.y"
-          [attr.y2]="tick.y"
-          class="grid-line"
-        />
-        <text [attr.x]="padLeft - 10" [attr.y]="tick.y + 4" class="axis-text" text-anchor="end">
-          {{ tick.value | money: currency() : true }}
-        </text>
-      }
+  <div class="chart">
+    <div class="chart__body" [style.height.px]="svgH()">
+      <!-- fixed y-axis gutter -->
+      <div class="chart__yaxis" [style.width.px]="cfg.yAxisWidth">
+        @for (tick of yTicks(); track tick.value) {
+          <span class="chart__ytick" [style.top.px]="tick.y">
+            {{ tick.value | money: currency() : true }}
+          </span>
+        }
+      </div>
 
-      <!-- x labels -->
-      @for (xl of xLabels(); track xl.x) {
-        @if (xl.show) {
-          <text
-            [attr.x]="xl.x"
-            [attr.y]="viewH - padBottom + 22"
-            class="axis-text"
-            text-anchor="middle"
+      <!-- scrollable plot -->
+      <div class="chart__scroll">
+        <div class="chart__canvas" [style.width.px]="svgW()" [style.height.px]="svgH()">
+          <svg
+            #svg
+            [attr.width]="svgW()"
+            [attr.height]="svgH()"
+            [attr.viewBox]="'0 0 ' + svgW() + ' ' + svgH()"
+            class="chart__svg"
+            (mousemove)="onMove($event, $any(svg))"
+            (mouseleave)="clearHover()"
           >
-            {{ xl.label }}
-          </text>
-        }
-      }
+            <!-- horizontal gridlines -->
+            @for (tick of yTicks(); track tick.value) {
+              <line
+                [attr.x1]="cfg.padLeft"
+                [attr.x2]="svgW() - cfg.padRight"
+                [attr.y1]="tick.y"
+                [attr.y2]="tick.y"
+                class="chart__grid"
+                [class.chart__grid--base]="tick.value === 0"
+              />
+            }
 
-      <!-- bars -->
-      @if (isBar()) {
-        @for (bar of plottedBars(); track $index) {
-          <rect
-            [attr.x]="bar.x"
-            [attr.y]="bar.y"
-            [attr.width]="bar.width"
-            [attr.height]="bar.height"
-            [attr.fill]="bar.color"
-            rx="3"
-            class="bar"
-          />
-        }
-      } @else {
-        <!-- area + lines -->
-        @for (s of plottedSeries(); track s.key) {
-          @if (isArea()) {
-            <path [attr.d]="s.areaPath" [attr.fill]="s.color" class="area" />
+            <!-- x-axis labels -->
+            @for (xl of xTicks(); track xl.x) {
+              @if (xl.show) {
+                <text
+                  [attr.x]="xl.x"
+                  [attr.y]="svgH() - cfg.padBottom + 20"
+                  class="chart__axis-text"
+                  text-anchor="middle"
+                >
+                  {{ xl.label }}
+                </text>
+              }
+            }
+
+            @if (isBar()) {
+              <!-- bars / stacked -->
+              @for (bar of plottedBars(); track $index) {
+                <rect
+                  [attr.x]="bar.x"
+                  [attr.y]="bar.y"
+                  [attr.width]="bar.width"
+                  [attr.height]="bar.height"
+                  [attr.fill]="bar.color"
+                  rx="3"
+                  class="chart__bar"
+                />
+              }
+            } @else if (directional()) {
+              <!-- single series · directional colouring -->
+              @for (s of plottedSeries(); track s.key) {
+                @if (isArea()) {
+                  @for (seg of s.areaSegments; track $index) {
+                    <path [attr.d]="seg.d" [attr.fill]="seg.color" class="chart__area-seg" />
+                  }
+                }
+                @for (seg of s.segments; track $index) {
+                  <path
+                    [attr.d]="seg.d"
+                    [attr.stroke]="seg.color"
+                    fill="none"
+                    class="chart__line"
+                  />
+                }
+                @for (p of s.points; track $index) {
+                  <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.6" class="chart__dot" />
+                }
+              }
+            } @else {
+              <!-- multi series · solid colours -->
+              @for (s of plottedSeries(); track s.key) {
+                @if (isArea()) {
+                  <path [attr.d]="s.areaPath" [attr.fill]="s.color" class="chart__area" />
+                }
+                <path
+                  [attr.d]="s.linePath"
+                  [attr.stroke]="s.color"
+                  fill="none"
+                  class="chart__line"
+                />
+                @for (p of s.points; track $index) {
+                  <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.6" [attr.fill]="s.color" class="chart__dot" />
+                }
+              }
+            }
+
+            <!-- hover crosshair + active vertices -->
+            @if (hoverData(); as hr) {
+              <line
+                [attr.x1]="hr.x"
+                [attr.x2]="hr.x"
+                [attr.y1]="cfg.padTop"
+                [attr.y2]="svgH() - cfg.padBottom"
+                class="chart__crosshair"
+              />
+              @for (p of hoverPoints(); track $index) {
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" class="chart__dot-active" />
+              }
+            }
+          </svg>
+
+          <!-- tooltip (scrolls with the canvas) -->
+          @if (hoverData(); as hr) {
+            <div class="chart__tooltip card" [style.left.px]="tooltipLeft(hr.x)">
+              <p class="chart__tt-title">{{ hr.label }}</p>
+              @for (row of hr.rows; track row.label) {
+                <div class="chart__tt-row">
+                  <span class="chart__tt-dot" [style.background]="row.color"></span>
+                  <span class="chart__tt-label">{{ row.label }}</span>
+                  <span class="chart__tt-val">{{ row.value | money: currency() }}</span>
+                </div>
+              }
+            </div>
           }
-          <path [attr.d]="s.linePath" [attr.stroke]="s.color" fill="none" class="line" />
-          @for (p of s.points; track $index) {
-            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.5" [attr.fill]="s.color" class="dot" />
-          }
-        }
-      }
+        </div>
+      </div>
+    </div>
 
-      <!-- hover guide -->
-      @if (hoverRows(); as hr) {
-        <line
-          [attr.x1]="hr.x"
-          [attr.x2]="hr.x"
-          [attr.y1]="padTop"
-          [attr.y2]="viewH - padBottom"
-          class="hover-line"
-        />
-      }
-    </svg>
-
-    <!-- tooltip -->
-    @if (hoverRows(); as hr) {
-      <div
-        class="chart-tooltip card"
-        [style.left.%]="(hr.x / viewW) * 100"
-      >
-        <p class="tt-title">{{ hr.label }}</p>
-        @for (row of hr.rows; track row.label) {
-          <div class="tt-row">
-            <span class="tt-dot" [style.background]="row.color"></span>
-            <span class="tt-label">{{ row.label }}</span>
-            <span class="tt-val">{{ row.value | money: currency() }}</span>
-          </div>
+    <!-- legend -->
+    @if (legend().length > 1) {
+      <div class="chart__legend">
+        @for (item of legend(); track item.label) {
+          <span class="chart__legend-item">
+            <span class="chart__legend-dot" [style.background]="item.color"></span>
+            {{ item.label }}
+          </span>
         }
+      </div>
+    } @else if (directional()) {
+      <div class="chart__legend">
+        <span class="chart__legend-item">
+          <span class="chart__legend-dot" [style.background]="trend.up"></span> Rising
+        </span>
+        <span class="chart__legend-item">
+          <span class="chart__legend-dot" [style.background]="trend.down"></span> Falling
+        </span>
+        <span class="chart__legend-item">
+          <span class="chart__legend-dot" [style.background]="trend.flat"></span> Flat
+        </span>
       </div>
     }
   </div>
-
-  <!-- legend -->
-  @if (legend().length > 1) {
-    <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 justify-center">
-      @for (item of legend(); track item.label) {
-        <span class="flex items-center gap-2 text-xs text-secondary">
-          <span class="legend-dot" [style.background]="item.color"></span>
-          {{ item.label }}
-        </span>
-      }
-    </div>
-  }
 }

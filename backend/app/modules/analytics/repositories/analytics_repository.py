@@ -97,9 +97,11 @@ class AnalyticsRepository:
     ) -> List[Dict[str, Any]]:
         """Bucket income totals by period, optionally split by a field."""
         unit = DATE_TRUNC_UNIT[group_by]
-        group_id: Dict[str, Any] = {
-            "period": {"$dateTrunc": {"date": "$payment_date", "unit": unit}}
-        }
+        trunc: Dict[str, Any] = {"date": "$payment_date", "unit": unit}
+        if unit == "week":
+            # Align week buckets to Monday so labels (week-of Monday) match.
+            trunc["startOfWeek"] = "monday"
+        group_id: Dict[str, Any] = {"period": {"$dateTrunc": trunc}}
         if split_field:
             group_id["split"] = f"${split_field}"
 

@@ -1,43 +1,45 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, input, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { ChartStyle, GraphSeries } from '../../../core/models/analytics.model';
 import { CHART_PALETTE } from '../../../core/constants/app.constants';
 import { MoneyPipe } from '../../pipes/money.pipe';
-
-interface PlottedPoint {
-  x: number;
-  y: number;
-  value: number;
-  label: string;
-}
-
-interface PlottedSeries {
-  key: string;
-  label: string;
-  color: string;
-  points: PlottedPoint[];
-  linePath: string;
-  areaPath: string;
-}
-
-interface PlottedBar {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  value: number;
-  label: string;
-  seriesLabel: string;
-}
-
-const VIEW_W = 760;
-const VIEW_H = 320;
-const PAD = { top: 24, right: 24, bottom: 40, left: 56 };
+import { CHART, TREND_COLORS } from './config/chart.config';
+import {
+  ChartBar,
+  ChartSeriesPlot,
+  HoverState,
+  LegendItem,
+  XTick,
+  YTick,
+} from './models/chart.types';
+import { buildYTicks, computeYScale } from './utils/chart-scale.util';
+import { computeLayout, indexAt, xAt } from './utils/chart-geometry.util';
+import {
+  buildAreaPath,
+  buildAreaSegments,
+  buildLinePath,
+  buildSegments,
+} from './utils/chart-path.util';
 
 /**
- * Dependency-free SVG analytics chart supporting line, area, bar and
- * stacked-bar rendering for one or many series.
+ * Dependency-free, fully responsive SVG analytics chart.
+ *
+ * Renders line / area / bar / stacked plots from one or many series. The
+ * drawing surface scales horizontally (scrolling when crowded) while keeping
+ * fonts and stroke widths pixel-constant. A single series is drawn with
+ * Angel-One style directional colouring (green up · red down · yellow flat).
+ *
+ * This component is the trunk; the maths lives in the `utils/` leaves and the
+ * tuning constants in `config/`, so every piece stays small and reusable.
  */
 @Component({
   selector: 'app-chart',
@@ -51,24 +53,63 @@ export class ChartComponent {
   readonly series = input<GraphSeries[]>([]);
   readonly style = input<ChartStyle>('area');
   readonly currency = input<string>('INR');
+  readonly height = input<number>(CHART.height);
 
-  readonly viewW = VIEW_W;
-  readonly viewH = VIEW_H;
-  readonly plotW = VIEW_W - PAD.left - PAD.right;
-  readonly plotH = VIEW_H - PAD.top - PAD.bottom;
-  readonly padLeft = PAD.left;
-  readonly padTop = PAD.top;
-  readonly padBottom = PAD.bottom;
+  /** Live width of the host element, tracked via ResizeObserver. */
+  private readonly containerW = signal(720);
+  readonly hover = signal<HoverState | null>(null);
 
-  readonly hover = signal<{ index: number; x: number } | null>(null);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // Exposed constants for the template.
+  readonly cfg = CHART;
+  readonly trend = TREND_COLORS;
+
+  constructor() {
+    afterNextRender(() => {
+      const el = this.host.nativeElement;
+      const ro = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width ?? 0;
+        if (width > 0) {
+          this.containerW.set(width);
+        }
+      });
+      ro.observe(el);
+      this.destroyRef.onDestroy(() => ro.disconnect());
+    });
+  }
+
+  // ------------------------------------------------------------------ //
+  // Derived geometry
+  // ------------------------------------------------------------------ //
+  readonly hasData = computed(() => this.series().length > 0 && this.labels().length > 0);
+  readonly count = computed(() => this.labels().length);
+  readonly isBar = computed(() => this.style() === 'bar' || this.style() === 'stacked');
+  readonly isStacked = computed(() => this.style() === 'stacked');
+  readonly isArea = computed(() => this.style() === 'area');
+  /** Single-series line/area gets the directional trend colouring. */
+  readonly directional = computed(() => this.series().length === 1 && !this.isBar());
+
+  readonly svgH = computed(() => this.height());
+  readonly plotH = computed(() => this.svgH() - CHART.padTop - CHART.padBottom);
+  readonly baseY = computed(() => CHART.padTop + this.plotH());
+
+  readonly layout = computed(() =>
+    computeLayout({
+      count: this.count(),
+      containerW: this.containerW(),
+      isBar: this.isBar(),
+    }),
+  );
+  readonly svgW = computed(() => this.layout().svgW);
 
   private readonly maxValue = computed(() => {
-    const style = this.style();
     const series = this.series();
     if (!series.length) {
       return 1;
     }
-    if (style === 'stacked') {
+    if (this.isStacked()) {
       const sums = this.labels().map((_, i) =>
         series.reduce((acc, s) => acc + (s.points[i]?.total ?? 0), 0),
       );
@@ -78,76 +119,92 @@ export class ChartComponent {
     return Math.max(1, ...all);
   });
 
-  readonly yTicks = computed(() => {
-    const max = this.maxValue();
-    const steps = 4;
-    return Array.from({ length: steps + 1 }, (_, i) => {
-      const value = (max / steps) * i;
-      return { value, y: PAD.top + this.plotH - (value / max) * this.plotH };
-    });
+  private readonly yScale = computed(() => computeYScale(this.maxValue(), CHART.yTicks));
+
+  readonly yTicks = computed<YTick[]>(() => {
+    const { max, step } = this.yScale();
+    return buildYTicks(max, step, CHART.padTop, this.plotH());
   });
 
-  readonly xLabels = computed(() => {
+  readonly xTicks = computed<XTick[]>(() => {
     const labels = this.labels();
     const n = labels.length || 1;
-    const every = Math.ceil(n / 8);
+    const layout = this.layout();
+    const isBar = this.isBar();
+    const every = Math.max(1, Math.ceil(CHART.xLabelGap / layout.slot));
     return labels.map((label, i) => ({
       label,
-      x: this.xCenter(i, n),
+      x: xAt(i, n, layout, isBar),
       show: i % every === 0 || i === n - 1,
     }));
   });
 
-  readonly plottedSeries = computed<PlottedSeries[]>(() => {
+  // ------------------------------------------------------------------ //
+  // Line / area series
+  // ------------------------------------------------------------------ //
+  readonly plottedSeries = computed<ChartSeriesPlot[]>(() => {
     const labels = this.labels();
+    const { max } = this.yScale();
+    const h = this.plotH();
+    const baseY = this.baseY();
+    const layout = this.layout();
     const n = labels.length || 1;
-    const max = this.maxValue();
+    const directional = this.directional();
+    const area = this.isArea();
+
     return this.series().map((s, si) => {
       const color = s.color ?? CHART_PALETTE[si % CHART_PALETTE.length];
-      const points: PlottedPoint[] = labels.map((label, i) => {
+      const points = labels.map((label, i) => {
         const value = s.points[i]?.total ?? 0;
         return {
-          x: this.xCenter(i, n),
-          y: PAD.top + this.plotH - (value / max) * this.plotH,
+          x: xAt(i, n, layout, false),
+          y: CHART.padTop + h - (value / max) * h,
           value,
           label,
         };
       });
-      const linePath = points
-        .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-        .join(' ');
-      const baseY = PAD.top + this.plotH;
-      const areaPath = points.length
-        ? `${linePath} L${points[points.length - 1].x.toFixed(1)},${baseY} L${points[0].x.toFixed(1)},${baseY} Z`
-        : '';
-      return { key: s.key, label: s.label, color, points, linePath, areaPath };
+      return {
+        key: s.key,
+        label: s.label,
+        color,
+        points,
+        linePath: buildLinePath(points),
+        areaPath: buildAreaPath(points, baseY),
+        segments: directional ? buildSegments(points, TREND_COLORS) : [],
+        areaSegments: directional && area ? buildAreaSegments(points, baseY, TREND_COLORS) : [],
+      };
     });
   });
 
-  readonly plottedBars = computed<PlottedBar[]>(() => {
+  // ------------------------------------------------------------------ //
+  // Bars / stacked
+  // ------------------------------------------------------------------ //
+  readonly plottedBars = computed<ChartBar[]>(() => {
     const labels = this.labels();
+    const { max } = this.yScale();
+    const h = this.plotH();
+    const baseY = this.baseY();
+    const layout = this.layout();
     const n = labels.length || 1;
-    const max = this.maxValue();
     const series = this.series();
-    const stacked = this.style() === 'stacked';
-    const slot = this.plotW / n;
-    const groupWidth = slot * 0.7;
-    const baseY = PAD.top + this.plotH;
-    const bars: PlottedBar[] = [];
+    const stacked = this.isStacked();
+    const single = series.length === 1 && !stacked;
+    const groupW = layout.slot * CHART.barGroupRatio;
+    const bars: ChartBar[] = [];
 
     labels.forEach((label, i) => {
-      const center = this.xCenter(i, n);
+      const center = xAt(i, n, layout, true);
       if (stacked) {
         let cursor = baseY;
         series.forEach((s, si) => {
           const value = s.points[i]?.total ?? 0;
-          const h = (value / max) * this.plotH;
-          cursor -= h;
+          const barH = (value / max) * h;
+          cursor -= barH;
           bars.push({
-            x: center - groupWidth / 2,
+            x: center - groupW / 2,
             y: cursor,
-            width: groupWidth,
-            height: h,
+            width: groupW,
+            height: barH,
             color: s.color ?? CHART_PALETTE[si % CHART_PALETTE.length],
             value,
             label,
@@ -155,16 +212,26 @@ export class ChartComponent {
           });
         });
       } else {
-        const barWidth = groupWidth / series.length;
+        const barW = groupW / series.length;
         series.forEach((s, si) => {
           const value = s.points[i]?.total ?? 0;
-          const h = (value / max) * this.plotH;
+          const barH = (value / max) * h;
+          let color = s.color ?? CHART_PALETTE[si % CHART_PALETTE.length];
+          if (single) {
+            const prev = i > 0 ? (s.points[i - 1]?.total ?? 0) : value;
+            color =
+              value > prev
+                ? TREND_COLORS.up
+                : value < prev
+                  ? TREND_COLORS.down
+                  : TREND_COLORS.flat;
+          }
           bars.push({
-            x: center - groupWidth / 2 + si * barWidth,
-            y: baseY - h,
-            width: Math.max(2, barWidth - 2),
-            height: h,
-            color: s.color ?? CHART_PALETTE[si % CHART_PALETTE.length],
+            x: center - groupW / 2 + si * barW,
+            y: baseY - barH,
+            width: Math.max(2, barW - CHART.barGap),
+            height: barH,
+            color,
             value,
             label,
             seriesLabel: s.label,
@@ -175,14 +242,17 @@ export class ChartComponent {
     return bars;
   });
 
-  readonly legend = computed(() =>
+  // ------------------------------------------------------------------ //
+  // Legend + hover
+  // ------------------------------------------------------------------ //
+  readonly legend = computed<LegendItem[]>(() =>
     this.series().map((s, i) => ({
       label: s.label,
       color: s.color ?? CHART_PALETTE[i % CHART_PALETTE.length],
     })),
   );
 
-  readonly hoverRows = computed(() => {
+  readonly hoverData = computed(() => {
     const h = this.hover();
     if (!h) {
       return null;
@@ -196,31 +266,34 @@ export class ChartComponent {
     return { label, rows, x: h.x };
   });
 
-  isBar(): boolean {
-    return this.style() === 'bar' || this.style() === 'stacked';
-  }
-
-  isArea(): boolean {
-    return this.style() === 'area';
-  }
+  /** Highlighted vertices (one per series) at the hovered index. */
+  readonly hoverPoints = computed(() => {
+    const h = this.hover();
+    if (!h || this.isBar()) {
+      return [];
+    }
+    return this.plottedSeries()
+      .map((s) => s.points[h.index])
+      .filter((p): p is NonNullable<typeof p> => !!p);
+  });
 
   onMove(event: MouseEvent, svg: SVGSVGElement): void {
     const rect = svg.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * VIEW_W;
-    const n = this.labels().length || 1;
-    const rel = (x - PAD.left) / this.plotW;
-    const index = Math.min(n - 1, Math.max(0, Math.round(rel * (n - 1))));
-    this.hover.set({ index, x: this.xCenter(index, n) });
+    if (!rect.width) {
+      return;
+    }
+    const x = ((event.clientX - rect.left) / rect.width) * this.svgW();
+    const index = indexAt(x, this.count(), this.layout(), this.isBar());
+    this.hover.set({ index, x: xAt(index, this.count(), this.layout(), this.isBar()) });
   }
 
   clearHover(): void {
     this.hover.set(null);
   }
 
-  private xCenter(i: number, n: number): number {
-    if (n === 1) {
-      return PAD.left + this.plotW / 2;
-    }
-    return PAD.left + (this.plotW / (n - 1)) * i;
+  /** Tooltip horizontal offset (px), clamped so it never overflows the plot. */
+  tooltipLeft(x: number): number {
+    const half = 90;
+    return Math.min(this.svgW() - half, Math.max(half, x));
   }
 }

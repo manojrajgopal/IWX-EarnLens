@@ -28,6 +28,7 @@ from app.modules.analytics.schemas.analytics_schemas import (
     TotalsSummary,
 )
 from app.modules.analytics.utils.period_utils import (
+    fill_period_range,
     format_period_label,
     start_of_month,
     start_of_quarter,
@@ -264,19 +265,29 @@ class AnalyticsService:
 
         # Totals per period (always present — drives the primary line).
         total_rows = await self.repo.time_series(query, group_by)
-        ordered_periods: List[datetime] = [r["_id"]["period"] for r in total_rows]
+        present_periods: List[datetime] = [r["_id"]["period"] for r in total_rows]
+
+        # Expand to a continuous, gap-free range so sparse day/week data
+        # keeps even chronological spacing instead of collapsing gaps.
+        ordered_periods = fill_period_range(present_periods, unit)
         labels = [format_period_label(p, unit) for p in ordered_periods]
         period_index = {p.isoformat(): idx for idx, p in enumerate(ordered_periods)}
 
+        # Map aggregated totals onto the continuous period axis (zero-filled).
         totals_by_period = [
             GraphPoint(
-                period=r["_id"]["period"].isoformat(),
-                label=format_period_label(r["_id"]["period"], unit),
-                total=round(r["total"], 2),
-                count=r["count"],
+                period=p.isoformat(),
+                label=format_period_label(p, unit),
+                total=0.0,
+                count=0,
             )
-            for r in total_rows
+            for p in ordered_periods
         ]
+        for row in total_rows:
+            idx = period_index.get(row["_id"]["period"].isoformat())
+            if idx is not None:
+                totals_by_period[idx].total = round(row["total"], 2)
+                totals_by_period[idx].count = row["count"]
 
         series: List[GraphSeries] = []
         if split_field:
