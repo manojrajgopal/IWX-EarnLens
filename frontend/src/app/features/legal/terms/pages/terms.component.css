@@ -1,0 +1,57 @@
+/* ── Legal page — Full-width cinematic layout ── */
+.lp {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient glow backdrop */
+.lp__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
+}
+
+.lp__container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 3rem 2rem 5rem;
+}
+
+@media (min-width: 768px) {
+  .lp__container { padding: 4rem 4rem 5rem; }
+}
+
+@media (min-width: 1200px) {
+  .lp__container { padding: 4rem 6rem 5rem; }
+}
+
+.lp__header {
+  margin-bottom: 3rem;
+}
+
+.lp__body {
+  padding-bottom: 3rem;
+}
+
+/* ── Scroll reveal animation ── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(32px) scale(0.98);
+  filter: blur(4px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0s),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0s),
+    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0s);
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}

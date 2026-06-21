@@ -1,9 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { LegalAcceptanceService } from '../../legal/shared/services/legal-acceptance.service';
+import { RegisterDraftService } from './services/register-draft.service';
 import { AuthHeadingComponent } from '../shared/auth-heading/auth-heading.component';
 import { AuthSwitchComponent } from '../shared/auth-switch/auth-switch.component';
 import { LaunchTransitionComponent } from '../shared/launch-transition/launch-transition.component';
@@ -57,15 +59,25 @@ import { RegisterFormComponent } from './components/register-form/register-form.
     }
   `,
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly acceptance = inject(LegalAcceptanceService);
+  private readonly draft = inject(RegisterDraftService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly launching = signal(false);
   readonly displayName = signal('');
+
+  /** Auto-tick the terms checkbox when user returns from legal pages. */
+  private readonly autoTick = effect(() => {
+    if (this.acceptance.termsAccepted() && this.acceptance.privacyAccepted()) {
+      this.form.get('terms')?.setValue(true);
+    }
+  });
 
   readonly form = this.fb.nonNullable.group(
     {
@@ -79,6 +91,22 @@ export class RegisterComponent {
     },
     { validators: passwordMatch('password', 'confirmPassword') },
   );
+
+  ngOnInit(): void {
+    // Restore saved draft on return from legal pages
+    const saved = this.draft.load();
+    if (saved) {
+      this.form.patchValue(saved, { emitEvent: false });
+    }
+
+    // Save draft whenever component is destroyed (navigating away)
+    this.destroyRef.onDestroy(() => {
+      if (!this.launching()) {
+        const { full_name, username, email, phone, password, confirmPassword } = this.form.getRawValue();
+        this.draft.save({ full_name, username, email, phone, password, confirmPassword });
+      }
+    });
+  }
 
   submit(): void {
     if (this.form.invalid) {
@@ -112,6 +140,7 @@ export class RegisterComponent {
   }
 
   onLaunchDone(): void {
+    this.draft.clear();
     this.toast.success('Welcome to EarnLens!');
     this.router.navigate(['/app/dashboard']);
   }

@@ -1,0 +1,24 @@
+<div class="lp">
+  <!-- Cinematic gradient backdrop -->
+  <div class="lp__backdrop"></div>
+
+  <div class="lp__container">
+    <div class="lp__header scroll-reveal">
+      <app-legal-header
+        title="Privacy Policy"
+        [lastUpdated]="meta.lastUpdated"
+        [version]="meta.version"
+      />
+    </div>
+
+    <div class="lp__body">
+      @for (section of sections; track section.id; let i = $index) {
+        <div class="scroll-reveal" [style.--delay]="(i * 0.08) + 's'">
+          <app-legal-section [section]="section" [index]="i + 1" />
+        </div>
+      }
+    </div>
+
+    <app-accept-button (accepted)="onAccept()" />
+  </div>
+</div>
