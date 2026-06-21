@@ -96,6 +96,10 @@ html.dark {
   box-sizing: border-box;
 }
 
+button, [role="button"] {
+  cursor: pointer;
+}
+
 html,
 body {
   margin: 0;
