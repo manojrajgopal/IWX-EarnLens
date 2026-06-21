@@ -38,13 +38,21 @@ import { FooterComponent } from '../footer/footer.component';
         display: flex;
         flex-direction: column;
         width: 100%;
-        max-width: 90rem;
-        margin: 0 auto;
         padding: 2rem 1.5rem;
       }
       @media (min-width: 640px) {
         .page-content {
-          padding: 2rem 2rem;
+          padding: 2rem 2.5rem;
+        }
+      }
+      @media (min-width: 1280px) {
+        .page-content {
+          padding: 2.5rem 4rem;
+        }
+      }
+      @media (min-width: 1536px) {
+        .page-content {
+          padding: 2.5rem 5vw;
         }
       }
     `,

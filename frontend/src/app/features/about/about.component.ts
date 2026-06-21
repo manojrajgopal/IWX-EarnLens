@@ -8,7 +8,7 @@ import { Component } from '@angular/core';
       <!-- hero -->
       <section class="mb-10">
         <h1 class="font-serif text-4xl font-bold mb-2">About EarnLens</h1>
-        <p class="text-secondary max-w-2xl">
+        <p class="text-secondary max-w-3xl">
           EarnLens is a premium personal income analytics platform built for freelancers,
           professionals and multi-stream earners who want clarity over every dollar they earn.
         </p>
@@ -37,7 +37,7 @@ import { Component } from '@angular/core';
       <!-- values -->
       <div class="card card-pad flex-1">
         <h2 class="font-serif text-xl font-semibold mb-5">What We Stand For</h2>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-6">
           @for (v of values; track v.title) {
             <div>
               <span class="text-2xl block mb-2">{{ v.icon }}</span>

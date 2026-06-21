@@ -54,9 +54,22 @@ import { UserMenuComponent } from './components/user-menu/user-menu.component';
         align-items: center;
         gap: 1rem;
         height: 64px;
-        max-width: 90rem;
-        margin: 0 auto;
-        padding: 0 1.25rem;
+        padding: 0 1.5rem;
+      }
+      @media (min-width: 640px) {
+        .hdr__inner {
+          padding: 0 2.5rem;
+        }
+      }
+      @media (min-width: 1280px) {
+        .hdr__inner {
+          padding: 0 4rem;
+        }
+      }
+      @media (min-width: 1536px) {
+        .hdr__inner {
+          padding: 0 5vw;
+        }
       }
       .hdr__left {
         flex: 1;
