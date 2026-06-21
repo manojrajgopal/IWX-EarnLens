@@ -15,6 +15,7 @@ from app.core.constants import (
 )
 from app.modules.incomes.controllers.income_controller import IncomeController
 from app.modules.incomes.dependencies.income_dependencies import (
+    get_income_series_service,
     get_income_service,
     get_recurring_income_service,
 )
@@ -22,6 +23,8 @@ from app.modules.incomes.recurring.schemas.recurring_schemas import (
     ScopedUpdateRequest,
     ScopedUpdateResult,
 )
+from app.modules.incomes.recurring.series.series_schemas import SeriesSummary
+from app.modules.incomes.recurring.series.series_service import IncomeSeriesService
 from app.modules.incomes.recurring.services.recurring_service import (
     RecurringIncomeService,
 )
@@ -57,6 +60,7 @@ def _filters(
     start_date: Optional[datetime] = Query(default=None),
     end_date: Optional[datetime] = Query(default=None),
     is_recurring: Optional[bool] = Query(default=None),
+    top_level: Optional[bool] = Query(default=None),
 ) -> IncomeFilter:
     return IncomeFilter(
         search=search,
@@ -73,6 +77,7 @@ def _filters(
         start_date=start_date,
         end_date=end_date,
         is_recurring=is_recurring,
+        top_level=top_level,
     )
 
 
@@ -111,6 +116,35 @@ async def recent_incomes(
 ) -> APIResponse[List[IncomePublic]]:
     items = await service.recent(user_id, limit)
     return APIResponse(data=[IncomePublic.model_validate(i) for i in items])
+
+
+@router.get(
+    "/{income_id}/occurrences",
+    response_model=PaginatedResponse[IncomePublic],
+)
+async def list_income_occurrences(
+    income_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=12, ge=1, le=200),
+    user_id: str = Depends(get_current_user_id),
+    service: IncomeSeriesService = Depends(get_income_series_service),
+) -> PaginatedResponse[IncomePublic]:
+    params = PageParams(page=page, page_size=page_size)
+    items, total = await service.list_occurrences(user_id, income_id, params)
+    return PaginatedResponse(
+        data=[IncomePublic.model_validate(i) for i in items],
+        meta=params.meta(total),
+    )
+
+
+@router.get("/{income_id}/series", response_model=APIResponse[SeriesSummary])
+async def get_income_series_summary(
+    income_id: str,
+    user_id: str = Depends(get_current_user_id),
+    service: IncomeSeriesService = Depends(get_income_series_service),
+) -> APIResponse[SeriesSummary]:
+    summary = await service.summary(user_id, income_id)
+    return APIResponse(data=summary)
 
 
 @router.get("/{income_id}", response_model=APIResponse[IncomePublic])

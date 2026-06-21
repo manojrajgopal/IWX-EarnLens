@@ -1,0 +1,73 @@
+.pg {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pg__caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pg__dot {
+  margin: 0 0.4rem;
+  opacity: 0.6;
+}
+
+.pg__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.pg__step,
+.pg__num {
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 0.6rem;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.pg__step:hover:not(:disabled),
+.pg__num:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.pg__step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pg__num--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.pg__num--active:hover {
+  color: var(--accent-contrast);
+}
+
+.pg__gap {
+  min-width: 1.4rem;
+  text-align: center;
+  color: var(--text-muted);
+  user-select: none;
+}

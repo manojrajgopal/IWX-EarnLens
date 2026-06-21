@@ -1,0 +1,10 @@
+.da {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.da__spacer {
+  flex: 1 1 auto;
+}

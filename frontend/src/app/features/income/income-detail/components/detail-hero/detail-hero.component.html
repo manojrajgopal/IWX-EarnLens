@@ -1,0 +1,24 @@
+<header class="hero card">
+  <div class="hero__glow" aria-hidden="true"></div>
+
+  <p class="hero__eyebrow">{{ kind() }}</p>
+
+  <div class="hero__top">
+    <h1 class="hero__title">{{ income().title }}</h1>
+    <app-detail-badge [status]="income().status" />
+  </div>
+
+  <p class="hero__amount">
+    {{ income().amount | money: income().currency }}
+  </p>
+
+  <div class="hero__meta">
+    <span class="hero__pill">{{ income().income_type | humanize }}</span>
+    @if (cadence(); as cad) {
+      <span class="hero__pill hero__pill--soft">↻ {{ cad }}</span>
+    }
+    @if (income().source_name) {
+      <span class="hero__pill hero__pill--soft">{{ income().source_name }}</span>
+    }
+  </div>
+</header>

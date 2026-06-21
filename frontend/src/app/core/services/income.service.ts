@@ -7,6 +7,7 @@ import {
   IncomeFilters,
   IncomePayload,
   ScopedUpdatePayload,
+  SeriesSummary,
 } from '../models/income.model';
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +25,17 @@ export class IncomeService {
 
   get(id: string): Observable<Income> {
     return this.api.get<Income>(`/incomes/${id}`);
+  }
+
+  /** Paginated occurrences (template + auto-generated children) of a series. */
+  occurrences(id: string, page = 1, pageSize = 12): Observable<PaginatedResponse<Income>> {
+    const params = this.api.toParams({ page, page_size: pageSize });
+    return this.api.getPaginated<Income>(`/incomes/${id}/occurrences`, params);
+  }
+
+  /** Aggregated roll-up of the recurring series an income belongs to. */
+  seriesSummary(id: string): Observable<SeriesSummary> {
+    return this.api.get<SeriesSummary>(`/incomes/${id}/series`);
   }
 
   create(payload: IncomePayload): Observable<Income> {

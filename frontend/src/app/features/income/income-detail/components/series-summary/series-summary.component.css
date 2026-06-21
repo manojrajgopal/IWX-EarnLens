@@ -1,0 +1,40 @@
+.ss {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.ss__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.ss__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.ss__value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.ss__value--money {
+  color: var(--positive);
+}
+
+.ss__value--sm {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}

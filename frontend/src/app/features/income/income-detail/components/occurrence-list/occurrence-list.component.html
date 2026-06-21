@@ -1,0 +1,36 @@
+<section class="ol card">
+  <header class="ol__head">
+    <h3 class="ol__title">Income in this series</h3>
+    @if (meta(); as m) {
+      <span class="ol__count">{{ m.total }}</span>
+    }
+  </header>
+
+  @if (loading()) {
+    <app-spinner height="200px" />
+  } @else if (occurrences().length) {
+    <div class="ol__rows">
+      @for (occ of occurrences(); track occ.id) {
+        <app-occurrence-row
+          [occurrence]="occ"
+          [active]="occ.id === currentId()"
+        />
+      }
+    </div>
+
+    @if (meta(); as m) {
+      <app-pagination
+        [page]="page()"
+        [totalPages]="m.total_pages"
+        [total]="m.total"
+        (pageChange)="pageChange.emit($event)"
+      />
+    }
+  } @else {
+    <app-empty-state
+      icon="↻"
+      title="No occurrences yet"
+      message="This series hasn't recorded any income entries."
+    />
+  }
+</section>

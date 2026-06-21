@@ -26,3 +26,6 @@ class IncomeFilter(BaseSchema):
     end_date: Optional[datetime] = None
     is_recurring: Optional[bool] = None
     tag_ids: Optional[List[str]] = None
+    top_level: Optional[bool] = None
+    """When true, hide auto-generated occurrences and only surface the
+    series templates and one-off entries (the "grandparent" rows)."""

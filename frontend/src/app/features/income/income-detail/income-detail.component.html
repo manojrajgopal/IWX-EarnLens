@@ -1,0 +1,54 @@
+@if (facade.loading()) {
+  <app-spinner height="320px" />
+} @else if (facade.notFound() || !facade.income()) {
+  <div class="card">
+    <app-empty-state
+      icon="🔍"
+      title="Income not found"
+      message="This entry may have been removed or never existed."
+    />
+  </div>
+} @else {
+  @if (facade.income(); as income) {
+    <div class="id">
+      <!-- Toolbar: back + edit/delete -->
+      <app-detail-actions [incomeId]="income.id" (remove)="remove()" />
+
+      <!-- Back to parent series (only for child occurrences) -->
+      @if (parentId(); as pid) {
+        <app-parent-link [parentId]="pid" />
+      }
+
+      <div class="id__layout" [class.id__layout--with-aside]="facade.hasSeries()">
+        <!-- Main column -->
+        <div class="id__main">
+          <app-detail-hero [income]="income" />
+
+          @if (facade.summary(); as summary) {
+            <app-series-summary [summary]="summary" />
+          }
+
+          <div class="id__sections">
+            @for (section of facade.sections(); track section.id) {
+              <app-detail-section [section]="section" />
+            }
+          </div>
+        </div>
+
+        <!-- Aside column: series occurrences -->
+        @if (facade.hasSeries()) {
+          <aside class="id__aside">
+            <app-occurrence-list
+              [occurrences]="facade.occurrences()"
+              [loading]="facade.occLoading()"
+              [meta]="facade.occMeta()"
+              [page]="facade.occPage()"
+              [currentId]="income.id"
+              (pageChange)="onOccurrencePage($event)"
+            />
+          </aside>
+        }
+      </div>
+    </div>
+  }
+}

@@ -17,6 +17,7 @@ import {
 } from '../../../core/constants/app.constants';
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/ui/pagination/pagination.component';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { HumanizePipe } from '../../../shared/pipes/humanize.pipe';
 
@@ -29,6 +30,7 @@ import { HumanizePipe } from '../../../shared/pipes/humanize.pipe';
     RouterLink,
     SpinnerComponent,
     EmptyStateComponent,
+    PaginationComponent,
     MoneyPipe,
     HumanizePipe,
   ],
@@ -67,7 +69,7 @@ export class IncomeListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.incomeApi.list(this.filters(), this.page(), 12).subscribe({
+    this.incomeApi.list({ ...this.filters(), top_level: true }, this.page(), 12).subscribe({
       next: (res) => {
         this.incomes.set(res.data);
         this.meta.set(res.meta);

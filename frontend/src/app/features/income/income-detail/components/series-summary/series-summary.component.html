@@ -1,0 +1,30 @@
+<div class="ss">
+  <div class="ss__cell">
+    <span class="ss__label">Total recorded</span>
+    <span class="ss__value ss__value--money">
+      {{ summary().total_amount | money: summary().currency }}
+    </span>
+  </div>
+
+  <div class="ss__cell">
+    <span class="ss__label">Occurrences</span>
+    <span class="ss__value">{{ summary().occurrence_count }}</span>
+  </div>
+
+  <div class="ss__cell">
+    <span class="ss__label">Auto-generated</span>
+    <span class="ss__value">{{ summary().generated_count }}</span>
+  </div>
+
+  <div class="ss__cell">
+    <span class="ss__label">Span</span>
+    <span class="ss__value ss__value--sm">{{ span() }}</span>
+  </div>
+
+  @if (summary().next_run_at) {
+    <div class="ss__cell">
+      <span class="ss__label">Next run</span>
+      <span class="ss__value ss__value--sm">{{ nextRun() }}</span>
+    </div>
+  }
+</div>

@@ -99,7 +99,12 @@
           @for (income of incomes(); track income.id) {
             <tr>
               <td>
-                <p class="font-medium">{{ income.title }}</p>
+                <a [routerLink]="['/app/income', income.id]" class="font-medium hover:underline">
+                  {{ income.title }}
+                </a>
+                @if (income.recurrence !== 'one_time') {
+                  <span class="badge ml-2">↻ Recurring</span>
+                }
                 @if (income.source_name) {
                   <p class="text-xs text-muted">{{ income.source_name }}</p>
                 }
@@ -111,6 +116,7 @@
                 {{ income.amount | money: income.currency }}
               </td>
               <td class="text-right whitespace-nowrap">
+                <a [routerLink]="['/app/income', income.id]" class="row-action">View</a>
                 <a [routerLink]="['/app/income', income.id, 'edit']" class="row-action">Edit</a>
                 <button class="row-action text-negative" (click)="remove(income)">Delete</button>
               </td>
@@ -123,23 +129,12 @@
 
   <!-- pagination -->
   @if (meta(); as m) {
-    @if (m.total_pages > 1) {
-      <div class="flex items-center justify-between mt-4">
-        <p class="text-sm text-muted">Page {{ m.page }} of {{ m.total_pages }}</p>
-        <div class="flex gap-2">
-          <button class="btn btn-secondary" [disabled]="m.page <= 1" (click)="goToPage(m.page - 1)">
-            ← Prev
-          </button>
-          <button
-            class="btn btn-secondary"
-            [disabled]="m.page >= m.total_pages"
-            (click)="goToPage(m.page + 1)"
-          >
-            Next →
-          </button>
-        </div>
-      </div>
-    }
+    <app-pagination
+      [page]="m.page"
+      [totalPages]="m.total_pages"
+      [total]="m.total"
+      (pageChange)="goToPage($event)"
+    />
   }
 } @else {
   <div class="card flex-1">

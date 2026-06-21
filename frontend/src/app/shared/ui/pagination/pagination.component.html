@@ -1,0 +1,48 @@
+@if (totalPages() > 1) {
+  <nav class="pg" aria-label="Pagination">
+    @if (total() !== null) {
+      <p class="pg__caption">
+        Page {{ page() }} of {{ totalPages() }}
+        <span class="pg__dot">•</span>
+        {{ total() }} total
+      </p>
+    }
+
+    <div class="pg__controls">
+      <button
+        type="button"
+        class="pg__step"
+        [disabled]="!canPrev()"
+        (click)="go(page() - 1)"
+        aria-label="Previous page"
+      >
+        ←
+      </button>
+
+      @for (slot of slots(); track $index) {
+        @if (slot === 'gap') {
+          <span class="pg__gap">…</span>
+        } @else {
+          <button
+            type="button"
+            class="pg__num"
+            [class.pg__num--active]="slot === page()"
+            (click)="go(slot)"
+          >
+            {{ slot }}
+          </button>
+        }
+      }
+
+      <button
+        type="button"
+        class="pg__step"
+        [disabled]="!canNext()"
+        (click)="go(page() + 1)"
+        aria-label="Next page"
+      >
+        →
+      </button>
+    </div>
+  </nav>
+}

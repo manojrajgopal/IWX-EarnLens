@@ -42,6 +42,9 @@ def build_income_query(user_id: str, filters: IncomeFilter) -> Dict[str, Any]:
         else:
             query["recurrence"] = RecurrenceType.ONE_TIME.value
 
+    if filters.top_level:
+        query["is_auto_generated"] = {"$ne": True}
+
     amount_query: Dict[str, Any] = {}
     if filters.min_amount is not None:
         amount_query["$gte"] = filters.min_amount

@@ -5,6 +5,7 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.api.dependencies import get_db
+from app.modules.incomes.recurring.series.series_service import IncomeSeriesService
 from app.modules.incomes.recurring.services.recurring_service import (
     RecurringIncomeService,
 )
@@ -28,3 +29,9 @@ def get_recurring_income_service(
     repo: IncomeRepository = Depends(get_income_repository),
 ) -> RecurringIncomeService:
     return RecurringIncomeService(repo)
+
+
+def get_income_series_service(
+    repo: IncomeRepository = Depends(get_income_repository),
+) -> IncomeSeriesService:
+    return IncomeSeriesService(repo)

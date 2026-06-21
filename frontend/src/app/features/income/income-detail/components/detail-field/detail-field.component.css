@@ -1,0 +1,39 @@
+.df {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.df:last-child {
+  border-bottom: none;
+}
+
+.df__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.df__value {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.df__value[data-kind='mono'] {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.df__value[data-kind='muted'] {
+  color: var(--text-secondary);
+}
+
+.df__value[data-kind='strong'] {
+  font-weight: 700;
+}

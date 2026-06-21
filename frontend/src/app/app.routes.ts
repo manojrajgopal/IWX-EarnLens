@@ -95,6 +95,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'income/:id',
+        loadComponent: () =>
+          import('./features/income/income-detail/income-detail.component').then(
+            (m) => m.IncomeDetailComponent,
+          ),
+      },
+      {
         path: 'categories',
         loadComponent: () =>
           import('./features/taxonomy/categories/categories.component').then(

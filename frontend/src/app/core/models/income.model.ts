@@ -90,6 +90,19 @@ export type IncomePayload = Partial<Omit<Income, 'id' | 'user_id' | 'created_at'
 /** Scope of a recurring-salary update (mirrors backend UpdateScope). */
 export type UpdateScope = 'all' | 'this_month' | 'this_and_future' | 'future_only';
 
+/** Aggregated roll-up of a recurring income series (parent + occurrences). */
+export interface SeriesSummary {
+  parent_id: string;
+  is_series: boolean;
+  occurrence_count: number;
+  generated_count: number;
+  total_amount: number;
+  currency: string;
+  first_date?: string | null;
+  last_date?: string | null;
+  next_run_at?: string | null;
+}
+
 /** Payload for a scoped update of a recurring income series. */
 export interface ScopedUpdatePayload {
   scope: UpdateScope;
@@ -112,4 +125,6 @@ export interface IncomeFilters {
   start_date?: string | null;
   end_date?: string | null;
   is_recurring?: boolean | null;
+  /** Hide auto-generated occurrences; only show series templates + one-offs. */
+  top_level?: boolean | null;
 }

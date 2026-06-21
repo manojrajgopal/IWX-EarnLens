@@ -1,0 +1,28 @@
+<a
+  class="orow"
+  [class.orow--active]="active()"
+  [routerLink]="['/app/income', occurrence().id]"
+>
+  <span class="orow__marker" [style.--tone]="'var(' + tone().tone + ')'">
+    {{ tone().icon }}
+  </span>
+
+  <span class="orow__main">
+    <span class="orow__date">{{ date() }}</span>
+    <span class="orow__tags">
+      @if (isTemplate()) {
+        <span class="orow__chip orow__chip--root">Template</span>
+      } @else {
+        <span class="orow__chip">Auto</span>
+      }
+      @if (active()) {
+        <span class="orow__chip orow__chip--here">Viewing</span>
+      }
+    </span>
+  </span>
+
+  <span class="orow__amount">
+    {{ occurrence().amount | money: occurrence().currency }}
+  </span>
+  <span class="orow__chev">→</span>
+</a>
