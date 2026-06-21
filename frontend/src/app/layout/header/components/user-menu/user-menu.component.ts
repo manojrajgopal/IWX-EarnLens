@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
@@ -16,7 +16,7 @@ import { ThemeService } from '../../../../core/services/theme.service';
         <span>{{ isDark() ? '☀' : '☾' }}</span>
       </button>
 
-      <div class="um__wrap">
+      <div class="um__wrap" #wrap (mouseenter)="onEnter()" (mouseleave)="onLeave()">
         <button class="um__avatar" type="button" (click)="toggle()" [class.um__avatar--open]="open()">
           {{ initials() || '☺' }}
         </button>
@@ -55,6 +55,8 @@ export class UserMenuComponent {
 
   readonly user = this.auth.currentUser;
   readonly open = signal(false);
+  private readonly wrap = viewChild<ElementRef<HTMLElement>>('wrap');
+  private leaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly initials = computed(() => {
     const name = this.user()?.full_name ?? '';
@@ -71,17 +73,44 @@ export class UserMenuComponent {
     return document.documentElement.classList.contains('dark');
   }
 
+  onEnter(): void {
+    this.clearLeaveTimer();
+    this.open.set(true);
+  }
+
+  onLeave(): void {
+    this.clearLeaveTimer();
+    this.leaveTimer = setTimeout(() => this.open.set(false), 150);
+  }
+
   toggle(): void {
+    this.clearLeaveTimer();
     this.open.update((v) => !v);
   }
 
   close(): void {
+    this.clearLeaveTimer();
     this.open.set(false);
+  }
+
+  private clearLeaveTimer(): void {
+    if (this.leaveTimer) {
+      clearTimeout(this.leaveTimer);
+      this.leaveTimer = null;
+    }
   }
 
   logout(): void {
     this.close();
     this.auth.logout();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocClick(e: MouseEvent): void {
+    const el = this.wrap()?.nativeElement;
+    if (el && !el.contains(e.target as Node)) {
+      this.close();
+    }
   }
 
   @HostListener('document:keydown.escape')

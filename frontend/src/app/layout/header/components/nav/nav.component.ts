@@ -21,6 +21,7 @@ import { NavDropdownComponent } from './nav-dropdown/nav-dropdown.component';
           [open]="openGroup() === group.title"
           (toggle)="onToggle($event)"
           (hover)="onHover($event)"
+          (leave)="onLeave()"
           (navigate)="onNavigate()"
         />
       }
@@ -46,26 +47,42 @@ export class NavComponent {
   readonly openGroup = signal<string | null>(null);
   readonly navigate = output<void>();
   private readonly navEl = viewChild<ElementRef<HTMLElement>>('navEl');
+  private leaveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Click a top-level button: toggle that panel, or switch if different. */
+  /** Click a top-level button: toggle that panel. */
   onToggle(title: string): void {
+    this.clearLeaveTimer();
     this.openGroup.update((cur) => (cur === title ? null : title));
   }
 
-  /** When a panel is already open, hovering another top-level button switches instantly. */
+  /** Hover a top-level button: open it immediately. */
   onHover(title: string): void {
-    if (this.openGroup() !== null) {
-      this.openGroup.set(title);
-    }
+    this.clearLeaveTimer();
+    this.openGroup.set(title);
+  }
+
+  /** Mouse leaves a dropdown area: close after a short delay. */
+  onLeave(): void {
+    this.clearLeaveTimer();
+    this.leaveTimer = setTimeout(() => this.openGroup.set(null), 150);
   }
 
   onNavigate(): void {
+    this.clearLeaveTimer();
     this.openGroup.set(null);
     this.navigate.emit();
   }
 
   close(): void {
+    this.clearLeaveTimer();
     this.openGroup.set(null);
+  }
+
+  private clearLeaveTimer(): void {
+    if (this.leaveTimer) {
+      clearTimeout(this.leaveTimer);
+      this.leaveTimer = null;
+    }
   }
 
   /** Click anywhere outside the <nav> element → close all dropdowns. */

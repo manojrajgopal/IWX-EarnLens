@@ -16,6 +16,7 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
     <div
       class="nd"
       (mouseenter)="hover.emit(group().title)"
+      (mouseleave)="leave.emit()"
     >
       <button
         class="nd__btn"
@@ -44,5 +45,6 @@ export class NavDropdownComponent {
 
   readonly toggle = output<string>();
   readonly hover = output<string>();
+  readonly leave = output<void>();
   readonly navigate = output<void>();
 }
