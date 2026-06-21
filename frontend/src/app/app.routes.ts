@@ -116,6 +116,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/settings/settings.component').then((m) => m.SettingsComponent),
       },
+      {
+        path: 'about',
+        loadComponent: () =>
+          import('./features/about/about.component').then((m) => m.AboutComponent),
+      },
+      {
+        path: 'contact',
+        loadComponent: () =>
+          import('./features/contact/contact.component').then((m) => m.ContactComponent),
+      },
     ],
   },
   {

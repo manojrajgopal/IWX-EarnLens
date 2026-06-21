@@ -1,0 +1,126 @@
+.um {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.um__theme {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  border-radius: var(--r-sm);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.um__theme:hover {
+  border-color: var(--text-muted);
+}
+
+.um__wrap {
+  position: relative;
+}
+
+.um__avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+.um__avatar--open,
+.um__avatar:hover {
+  box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--accent);
+}
+
+.um__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 15rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
+  z-index: 60;
+  overflow: hidden;
+  animation: um-pop 0.16s ease;
+}
+
+.um__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.um__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.um__email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.um__links {
+  padding: 0.375rem;
+}
+.um__link,
+.um__logout {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  text-decoration: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.um__link:hover,
+.um__logout:hover {
+  background: var(--bg-surface-2);
+}
+.um__link-icon {
+  width: 1.25rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.um__logout {
+  margin: 0.375rem;
+  width: calc(100% - 0.75rem);
+  color: var(--c-rose);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+}
+
+@keyframes um-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

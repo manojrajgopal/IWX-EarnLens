@@ -1,0 +1,124 @@
+.mm__toggle {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+@media (min-width: 1024px) {
+  .mm__toggle {
+    display: none;
+  }
+}
+
+.mm__bars,
+.mm__bars::before,
+.mm__bars::after {
+  display: block;
+  width: 1.05rem;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  position: relative;
+}
+.mm__bars::before,
+.mm__bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+.mm__bars::before {
+  top: -5px;
+}
+.mm__bars::after {
+  top: 5px;
+}
+
+.mm__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+  animation: mm-fade 0.15s ease;
+}
+
+.mm__drawer {
+  width: min(20rem, 88vw);
+  height: 100%;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  animation: mm-slide 0.2s ease;
+}
+
+.mm__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.mm__title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.mm__close {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-2);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.mm__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.mm__group {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.mm__group:last-child {
+  border-bottom: none;
+}
+.mm__group-title {
+  display: block;
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+@keyframes mm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mm-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
