@@ -5,6 +5,7 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
   signal,
@@ -77,7 +78,26 @@ export class ChartComponent {
       });
       ro.observe(el);
       this.destroyRef.onDestroy(() => ro.disconnect());
+
+      // Scroll the chart to show today (rightmost / latest data) on load.
+      this.scrollToEnd();
     });
+
+    // Re-scroll to end whenever the data changes (new labels/series loaded).
+    effect(() => {
+      // Subscribe to reactive inputs so the effect re-runs on data change.
+      this.svgW();
+      this.labels();
+      // Push scroll to the next microtask so the DOM has updated.
+      queueMicrotask(() => this.scrollToEnd());
+    });
+  }
+
+  private scrollToEnd(): void {
+    const scroller = this.host.nativeElement.querySelector('.chart__scroll');
+    if (scroller) {
+      scroller.scrollLeft = scroller.scrollWidth;
+    }
   }
 
   // ------------------------------------------------------------------ //
