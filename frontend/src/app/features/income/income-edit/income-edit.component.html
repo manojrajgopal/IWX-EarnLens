@@ -100,6 +100,81 @@
                 Taxable income
               </label>
             </div>
+          </div>
+
+          <!-- organization -->
+          <h3 class="font-serif text-base font-semibold mt-6 mb-3">Organization</h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label">Category</label>
+              <div class="flex gap-2">
+                <select class="select flex-1" formControlName="category_id">
+                  <option value="">No category</option>
+                  @for (c of categories(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+                <a routerLink="/app/categories" class="btn btn-ghost btn-sm self-center" title="Create category">+</a>
+              </div>
+            </div>
+
+            <div>
+              <label class="field-label">Source</label>
+              <div class="flex gap-2">
+                <select class="select flex-1" formControlName="source_id">
+                  <option value="">No source</option>
+                  @for (s of sources(); track s.id) {
+                    <option [value]="s.id">{{ s.name }}</option>
+                  }
+                </select>
+                <a routerLink="/app/sources" class="btn btn-ghost btn-sm self-center" title="Create source">+</a>
+              </div>
+            </div>
+
+            @if (tags().length) {
+              <div class="sm:col-span-2">
+                <label class="field-label">Tags</label>
+                <div class="flex flex-wrap gap-2">
+                  @for (tag of tags(); track tag.id) {
+                    <button
+                      type="button"
+                      class="chip-toggle"
+                      [class.chip-active]="selectedTags().includes(tag.id)"
+                      [style.--chip-color]="tag.color"
+                      [disabled]="!unlocked()"
+                      (click)="toggleTag(tag.id)"
+                    >
+                      # {{ tag.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- additional info -->
+          <h3 class="font-serif text-base font-semibold mt-6 mb-3">Additional info</h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label">Client</label>
+              <input class="input" formControlName="client" placeholder="Optional" />
+            </div>
+            <div>
+              <label class="field-label">Employer</label>
+              <input class="input" formControlName="employer" placeholder="Optional" />
+            </div>
+            <div>
+              <label class="field-label">Platform</label>
+              <input class="input" formControlName="platform" placeholder="e.g. Upwork" />
+            </div>
+            <div>
+              <label class="field-label">Project</label>
+              <input class="input" formControlName="project_name" placeholder="Optional" />
+            </div>
+            <div>
+              <label class="field-label">Reference no.</label>
+              <input class="input" formControlName="reference_number" placeholder="Optional" />
+            </div>
 
             <div class="sm:col-span-2">
               <label class="field-label">Notes</label>
