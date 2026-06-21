@@ -100,12 +100,17 @@ export class NavItemComponent {
   readonly open = signal(false);
   readonly flipLeft = signal(false);
   private readonly flyout = viewChild<ElementRef<HTMLElement>>('flyout');
+  private leaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   hasChildren(): boolean {
     return !!this.node().children?.length;
   }
 
   onEnter(): void {
+    if (this.leaveTimer) {
+      clearTimeout(this.leaveTimer);
+      this.leaveTimer = null;
+    }
     if (this.hasChildren()) {
       this.open.set(true);
       queueMicrotask(() => this.measure());
@@ -113,7 +118,11 @@ export class NavItemComponent {
   }
 
   onLeave(): void {
-    this.open.set(false);
+    if (this.leaveTimer) clearTimeout(this.leaveTimer);
+    this.leaveTimer = setTimeout(() => {
+      this.open.set(false);
+      this.leaveTimer = null;
+    }, 120);
   }
 
   toggle(): void {

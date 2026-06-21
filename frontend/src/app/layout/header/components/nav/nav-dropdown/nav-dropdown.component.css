@@ -55,6 +55,16 @@
   animation: nd-pop 0.16s ease;
 }
 
+/* Invisible bridge to cover the gap between button and panel */
+.nd__panel::before {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  left: 0;
+  right: 0;
+  height: 0.75rem;
+}
+
 @keyframes nd-pop {
   from {
     opacity: 0;

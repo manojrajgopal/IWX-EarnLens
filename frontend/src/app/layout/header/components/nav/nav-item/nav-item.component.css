@@ -111,6 +111,20 @@
   animation: ni-pop 0.14s ease;
 }
 
+/* Invisible bridge covering the gap between parent row and flyout */
+.ni__flyout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -0.5rem;
+  width: 0.5rem;
+  height: 100%;
+}
+.ni__flyout--left::before {
+  left: auto;
+  right: -0.5rem;
+}
+
 .ni__flyout--left {
   left: auto;
   right: 100%;

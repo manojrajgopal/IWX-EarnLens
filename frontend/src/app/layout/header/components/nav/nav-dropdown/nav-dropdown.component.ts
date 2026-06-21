@@ -16,7 +16,6 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
     <div
       class="nd"
       (mouseenter)="hover.emit(group().title)"
-      (mouseleave)="leave.emit()"
     >
       <button
         class="nd__btn"
@@ -24,9 +23,6 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
         type="button"
         (click)="toggle.emit(group().title)"
       >
-        @if (group().icon) {
-          <span class="nd__icon">{{ group().icon }}</span>
-        }
         <span>{{ group().title }}</span>
         <span class="nd__chev">▾</span>
       </button>
@@ -48,6 +44,5 @@ export class NavDropdownComponent {
 
   readonly toggle = output<string>();
   readonly hover = output<string>();
-  readonly leave = output<void>();
   readonly navigate = output<void>();
 }
