@@ -52,9 +52,14 @@ class AuthService:
         if existing:
             raise ConflictError("An account with this email already exists.")
 
+        existing_username = await self.users.get_by_username(payload.username)
+        if existing_username:
+            raise ConflictError("This username is already taken.")
+
         user = await self.users.create(
             {
                 "email": payload.email.lower(),
+                "username": payload.username.lower(),
                 "hashed_password": hash_password(payload.password),
                 "full_name": payload.full_name.strip(),
                 "role": UserRole.USER.value,
@@ -68,9 +73,9 @@ class AuthService:
         return {"user": user, "tokens": tokens}
 
     async def login(self, payload: LoginRequest) -> Dict[str, Any]:
-        user = await self.users.get_by_email(payload.email)
+        user = await self.users.get_by_identifier(payload.identifier)
         if not user or not verify_password(payload.password, user["hashed_password"]):
-            raise UnauthorizedError("Invalid email or password.")
+            raise UnauthorizedError("Invalid username/email or password.")
         if not user.get("is_active", False):
             raise UnauthorizedError("This account has been deactivated.")
 

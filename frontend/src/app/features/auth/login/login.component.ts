@@ -65,7 +65,7 @@ export class LoginComponent {
   readonly displayName = signal('');
 
   readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    identifier: ['', [Validators.required]],
     password: ['', [Validators.required]],
     remember: [true],
   });
@@ -76,8 +76,8 @@ export class LoginComponent {
       return;
     }
     this.loading.set(true);
-    const { email, password } = this.form.getRawValue();
-    this.auth.login({ email, password }).subscribe({
+    const { identifier, password } = this.form.getRawValue();
+    this.auth.login({ identifier, password }).subscribe({
       next: (result) => {
         this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
         this.loading.set(false);

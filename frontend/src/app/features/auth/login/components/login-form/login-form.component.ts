@@ -13,14 +13,13 @@ import { PasswordFieldComponent } from '../../../shared/password-field/password-
     <form [formGroup]="form()" (ngSubmit)="submitted.emit()" class="lf">
       <div class="lf__row" style="--d: 0.1s">
         <app-text-field
-          [control]="ctrl('email')"
-          label="Email"
-          type="email"
-          icon="✉"
-          placeholder="you@example.com"
-          autocomplete="email"
-          inputmode="email"
-          [errors]="{ required: 'Email is required.', email: 'Enter a valid email address.' }"
+          [control]="ctrl('identifier')"
+          label="Username or Email"
+          type="text"
+          icon="☺"
+          placeholder="janedoe or you@example.com"
+          autocomplete="username"
+          [errors]="{ required: 'Username or email is required.' }"
         />
       </div>
 

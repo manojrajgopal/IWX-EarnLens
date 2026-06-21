@@ -13,6 +13,7 @@ logger = get_logger("earnlens.db.indexes")
 async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     """Create all required indexes. Safe to call repeatedly."""
     await db[Collections.USERS].create_index([("email", ASCENDING)], unique=True)
+    await db[Collections.USERS].create_index([("username", ASCENDING)], unique=True, sparse=True)
 
     incomes = db[Collections.INCOMES]
     await incomes.create_index([("user_id", ASCENDING), ("payment_date", DESCENDING)])

@@ -15,6 +15,7 @@ class UserPublic(BaseSchema):
 
     id: str
     email: EmailStr
+    username: Optional[str] = None
     full_name: str
     role: UserRole
     is_active: bool

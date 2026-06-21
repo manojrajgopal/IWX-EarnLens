@@ -13,6 +13,7 @@ class UserModel(BaseModel):
     """Shape of a user document stored in MongoDB."""
 
     email: EmailStr
+    username: str
     hashed_password: str
     full_name: str
     role: UserRole = UserRole.USER

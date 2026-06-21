@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  username: string;
   full_name: string;
   role: 'user' | 'admin';
   is_active: boolean;
@@ -24,12 +25,13 @@ export interface AuthResult {
 
 export interface RegisterPayload {
   full_name: string;
+  username: string;
   email: string;
   password: string;
 }
 
 export interface LoginPayload {
-  email: string;
+  identifier: string;
   password: string;
 }
 

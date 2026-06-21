@@ -85,8 +85,8 @@ export class RegisterComponent {
       return;
     }
     this.loading.set(true);
-    const { full_name, email, password } = this.form.getRawValue();
-    this.auth.register({ full_name, email, password }).subscribe({
+    const { full_name, username, email, password } = this.form.getRawValue();
+    this.auth.register({ full_name, username, email, password }).subscribe({
       next: (result) => {
         this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
         this.loading.set(false);
