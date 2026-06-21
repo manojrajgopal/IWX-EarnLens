@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import { Category, CategoryPayload } from '../../../core/models/category.model';
 import { CHART_PALETTE } from '../../../core/constants/app.constants';
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
@@ -19,6 +20,7 @@ export class CategoriesComponent implements OnInit {
   private readonly api = inject(CategoryService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   readonly palette = CHART_PALETTE;
   readonly loading = signal(true);
@@ -83,8 +85,15 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  remove(item: Category): void {
-    if (!confirm(`Delete category "${item.name}"?`)) {
+  async remove(item: Category): Promise<void> {
+    const ok = await this.dialog.confirm({
+      variant: 'danger',
+      title: 'Delete category?',
+      message: 'This will permanently remove the category',
+      highlight: item.name,
+      confirmLabel: 'Delete category',
+    });
+    if (!ok) {
       return;
     }
     this.api.remove(item.id).subscribe(() => {

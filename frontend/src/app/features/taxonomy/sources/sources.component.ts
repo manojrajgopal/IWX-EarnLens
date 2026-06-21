@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SourceService } from '../../../core/services/source.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import { Source, SourcePayload } from '../../../core/models/source.model';
 import { CHART_PALETTE } from '../../../core/constants/app.constants';
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
@@ -19,6 +20,7 @@ export class SourcesComponent implements OnInit {
   private readonly api = inject(SourceService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   readonly palette = CHART_PALETTE;
   readonly loading = signal(true);
@@ -94,8 +96,15 @@ export class SourcesComponent implements OnInit {
     });
   }
 
-  remove(item: Source): void {
-    if (!confirm(`Delete source "${item.name}"?`)) {
+  async remove(item: Source): Promise<void> {
+    const ok = await this.dialog.confirm({
+      variant: 'danger',
+      title: 'Delete source?',
+      message: 'This will permanently remove the source',
+      highlight: item.name,
+      confirmLabel: 'Delete source',
+    });
+    if (!ok) {
       return;
     }
     this.api.remove(item.id).subscribe(() => {

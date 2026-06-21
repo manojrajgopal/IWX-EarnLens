@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TagService } from '../../../core/services/tag.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import { Tag, TagPayload } from '../../../core/models/tag.model';
 import { CHART_PALETTE } from '../../../core/constants/app.constants';
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
@@ -18,6 +19,7 @@ export class TagsComponent implements OnInit {
   private readonly api = inject(TagService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   readonly palette = CHART_PALETTE;
   readonly loading = signal(true);
@@ -75,8 +77,15 @@ export class TagsComponent implements OnInit {
     });
   }
 
-  remove(item: Tag): void {
-    if (!confirm(`Delete tag "${item.name}"?`)) {
+  async remove(item: Tag): Promise<void> {
+    const ok = await this.dialog.confirm({
+      variant: 'danger',
+      title: 'Delete tag?',
+      message: 'This will permanently remove the tag',
+      highlight: item.name,
+      confirmLabel: 'Delete tag',
+    });
+    if (!ok) {
       return;
     }
     this.api.remove(item.id).subscribe(() => {

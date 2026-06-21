@@ -1,0 +1,172 @@
+/* ──────────────────────────────────────────────
+   Cinematic dialog panel
+   ────────────────────────────────────────────── */
+.dp {
+  position: relative;
+  width: min(92vw, 440px);
+  border-radius: 24px;
+  background: var(--bg-surface, rgba(20, 20, 26, 0.85));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 30px 80px -20px rgba(0, 0, 0, 0.6),
+    0 0 60px -20px var(--glow),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  animation: dp-enter 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes dp-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.92) rotateX(8deg);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0);
+    filter: blur(0);
+  }
+}
+
+/* Exit */
+.dp--leaving {
+  animation: dp-leave 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes dp-leave {
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+    filter: blur(4px);
+  }
+}
+
+/* Soft ambient glow behind the panel */
+.dp__glow {
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 0%, var(--glow) 0%, transparent 55%);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: dp-glow 5s ease-in-out infinite;
+}
+@keyframes dp-glow {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.6; }
+}
+
+/* Sweeping light beam across the top edge */
+.dp__beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 2;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  transform: translateX(-100%);
+  animation: dp-beam 3.5s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+@keyframes dp-beam {
+  0% { transform: translateX(-100%); opacity: 0; }
+  30% { opacity: 1; }
+  60% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.dp__inner {
+  position: relative;
+  z-index: 1;
+  padding: 2.25rem 2rem 1.75rem;
+  text-align: center;
+}
+
+/* ── Typography ── */
+.dp__title {
+  font-family: var(--font-serif, serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, #fff);
+  margin: 1.25rem 0 0;
+  opacity: 0;
+  animation: dp-rise 0.5s ease 0.16s forwards;
+}
+.dp__message {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #b4b4be);
+  margin: 0.7rem 0 0;
+  opacity: 0;
+  animation: dp-rise 0.5s ease 0.24s forwards;
+}
+.dp__highlight {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dp__note {
+  font-size: 0.76rem;
+  color: var(--text-tertiary, #8b8b94);
+  margin: 0.85rem 0 0;
+  opacity: 0;
+  animation: dp-rise 0.5s ease 0.3s forwards;
+}
+@keyframes dp-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Type-to-confirm gate ── */
+.dp__gate {
+  margin-top: 1.4rem;
+  text-align: left;
+  opacity: 0;
+  animation: dp-rise 0.5s ease 0.34s forwards;
+}
+.dp__gate-label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-tertiary, #8b8b94);
+  margin-bottom: 0.45rem;
+}
+.dp__gate-label strong {
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.dp__gate-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #fff);
+  background: var(--bg-base, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dp__gate-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+
+@media (max-width: 420px) {
+  .dp {
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    animation: dp-enter-mobile 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes dp-enter-mobile {
+    0% { opacity: 0; transform: translateY(100%); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .dp__inner { padding: 2rem 1.5rem 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp, .dp__title, .dp__message, .dp__note, .dp__gate { animation: none; opacity: 1; transform: none; }
+  .dp__glow, .dp__beam { animation: none; }
+}

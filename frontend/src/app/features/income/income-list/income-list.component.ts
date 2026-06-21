@@ -6,6 +6,7 @@ import { IncomeService } from '../../../core/services/income.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { SourceService } from '../../../core/services/source.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import { Income, IncomeFilters } from '../../../core/models/income.model';
 import { Category } from '../../../core/models/category.model';
 import { Source } from '../../../core/models/source.model';
@@ -38,6 +39,7 @@ export class IncomeListComponent implements OnInit {
   private readonly categoryApi = inject(CategoryService);
   private readonly sourceApi = inject(SourceService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   readonly typeOptions = INCOME_TYPE_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;
@@ -95,8 +97,16 @@ export class IncomeListComponent implements OnInit {
     this.load();
   }
 
-  remove(income: Income): void {
-    if (!confirm(`Delete "${income.title}"? This cannot be undone.`)) {
+  async remove(income: Income): Promise<void> {
+    const ok = await this.dialog.confirm({
+      variant: 'danger',
+      title: 'Delete income?',
+      message: 'This entry will be permanently deleted',
+      highlight: income.title,
+      note: 'This action cannot be undone.',
+      confirmLabel: 'Delete income',
+    });
+    if (!ok) {
       return;
     }
     this.incomeApi.remove(income.id).subscribe(() => {
