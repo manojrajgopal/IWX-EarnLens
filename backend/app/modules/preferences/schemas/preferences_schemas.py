@@ -23,7 +23,7 @@ class PreferencesUpdate(BaseSchema):
 class PreferencesPublic(BaseSchema):
     user_id: str
     theme: str = "system"
-    default_currency: str = "USD"
+    default_currency: str = "INR"
     default_group_by: str = "month"
     default_chart_style: str = "area"
     week_starts_on: str = "monday"

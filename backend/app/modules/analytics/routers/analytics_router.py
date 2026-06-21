@@ -68,7 +68,7 @@ async def dashboard(
     user=Depends(get_current_user),
     service: AnalyticsService = Depends(get_analytics_service),
 ) -> APIResponse[DashboardSummary]:
-    currency = filters.currency or user.get("default_currency", "USD")
+    currency = filters.currency or user.get("default_currency", "INR")
     data = await service.dashboard(user["id"], filters, currency)
     return APIResponse(data=data)
 
@@ -102,7 +102,7 @@ async def distribution(
     user=Depends(get_current_user),
     service: AnalyticsService = Depends(get_analytics_service),
 ) -> APIResponse[List[DistributionItem]]:
-    currency = filters.currency or user.get("default_currency", "USD")
+    currency = filters.currency or user.get("default_currency", "INR")
     summary = await service.dashboard(user["id"], filters, currency)
     mapping = {
         "category": summary.by_category,

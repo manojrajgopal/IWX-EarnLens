@@ -20,7 +20,7 @@ class UserModel(BaseModel):
     is_active: bool = True
     is_email_verified: bool = False
     avatar_url: Optional[str] = None
-    default_currency: str = "USD"
+    default_currency: str = "INR"
     email_verify_token: Optional[str] = None
     password_reset_token: Optional[str] = None
     password_reset_expires: Optional[datetime] = None

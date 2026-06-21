@@ -56,7 +56,7 @@ async def seed() -> None:
                 "role": UserRole.USER.value,
                 "is_active": True,
                 "is_email_verified": True,
-                "default_currency": "USD",
+                "default_currency": "INR",
                 "created_at": now,
                 "updated_at": now,
             }

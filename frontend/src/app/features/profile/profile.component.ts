@@ -32,7 +32,7 @@ export class ProfileComponent implements OnInit {
 
   readonly profileForm = this.fb.nonNullable.group({
     full_name: ['', [Validators.required, Validators.minLength(2)]],
-    default_currency: ['USD', [Validators.required]],
+    default_currency: ['INR', [Validators.required]],
     avatar_url: [''],
   });
 

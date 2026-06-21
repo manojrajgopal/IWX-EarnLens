@@ -17,7 +17,7 @@
       label="Total income"
       [value]="s.totals.total"
       [currency]="currency()"
-      icon="＄"
+      icon="₹"
       accent="#6366f1"
       [hint]="s.totals.count + ' entries'"
     />
@@ -138,7 +138,7 @@
       </ul>
     } @else {
       <app-empty-state
-        icon="＄"
+        icon="₹"
         title="No income yet"
         message="Start by adding your first income entry."
       />

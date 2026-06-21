@@ -54,7 +54,7 @@ export class StatCardComponent {
   readonly icon = input<string>('💰');
   readonly accent = input<string>('#6366f1');
   readonly hint = input<string>('');
-  readonly currency = input<string>('USD');
+  readonly currency = input<string>('INR');
   readonly isMoney = input<boolean>(true);
   readonly trend = input<number>(0);
 

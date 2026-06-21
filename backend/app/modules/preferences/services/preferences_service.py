@@ -10,7 +10,7 @@ from app.shared.base_repository import serialize
 
 _DEFAULTS: Dict[str, Any] = {
     "theme": "system",
-    "default_currency": "USD",
+    "default_currency": "INR",
     "default_group_by": "month",
     "default_chart_style": "area",
     "week_starts_on": "monday",

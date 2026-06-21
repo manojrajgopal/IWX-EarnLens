@@ -50,7 +50,7 @@ export class ChartComponent {
   readonly labels = input<string[]>([]);
   readonly series = input<GraphSeries[]>([]);
   readonly style = input<ChartStyle>('area');
-  readonly currency = input<string>('USD');
+  readonly currency = input<string>('INR');
 
   readonly viewW = VIEW_W;
   readonly viewH = VIEW_H;

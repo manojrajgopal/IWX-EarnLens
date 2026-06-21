@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     )
 
     # ---- Defaults ----
-    DEFAULT_CURRENCY: str = "USD"
+    DEFAULT_CURRENCY: str = "INR"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

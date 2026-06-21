@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { IncomeService } from '../../core/services/income.service';
+import { CURRENCY_SYMBOLS } from '../../core/constants/app.constants';
 import { DashboardSummary, GraphSeries } from '../../core/models/analytics.model';
 import { Income } from '../../core/models/income.model';
 import { StatCardComponent } from '../../shared/ui/stat-card/stat-card.component';
@@ -35,7 +36,8 @@ export class DashboardComponent implements OnInit {
   readonly summary = signal<DashboardSummary | null>(null);
   readonly recent = signal<Income[]>([]);
 
-  readonly currency = computed(() => this.summary()?.currency ?? 'USD');
+  readonly currency = computed(() => this.summary()?.currency || 'INR');
+  readonly currencySymbol = computed(() => CURRENCY_SYMBOLS[this.currency()] || '₹');
 
   readonly chartLabels = computed(() => (this.summary()?.trend ?? []).map((p) => p.label));
   readonly chartSeries = computed<GraphSeries[]>(() => {

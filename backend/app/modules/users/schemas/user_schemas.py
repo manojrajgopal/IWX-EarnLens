@@ -21,7 +21,7 @@ class UserPublic(BaseSchema):
     is_active: bool
     is_email_verified: bool
     avatar_url: Optional[str] = None
-    default_currency: str = "USD"
+    default_currency: str = "INR"
     last_login_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
 

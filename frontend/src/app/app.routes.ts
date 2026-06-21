@@ -117,6 +117,11 @@ export const routes: Routes = [
           import('./features/settings/settings.component').then((m) => m.SettingsComponent),
       },
       {
+        path: 'currency',
+        loadComponent: () =>
+          import('./features/currency/currency.component').then((m) => m.CurrencyComponent),
+      },
+      {
         path: 'about',
         loadComponent: () =>
           import('./features/about/about.component').then((m) => m.AboutComponent),

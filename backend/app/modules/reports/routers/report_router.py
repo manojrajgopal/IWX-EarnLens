@@ -45,7 +45,7 @@ async def generate_report(
     user=Depends(get_current_user),
     service: ReportService = Depends(get_report_service),
 ) -> APIResponse[IncomeReport]:
-    currency = filters.currency or user.get("default_currency", "USD")
+    currency = filters.currency or user.get("default_currency", "INR")
     report = await service.build(user["id"], filters, currency)
     return APIResponse(data=report)
 

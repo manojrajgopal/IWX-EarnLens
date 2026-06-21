@@ -73,7 +73,7 @@ export class AnalyticsComponent implements OnInit {
     { value: 'type', label: 'Type' },
   ];
 
-  readonly currency = computed(() => 'USD');
+  readonly currency = computed(() => 'INR');
 
   ngOnInit(): void {
     this.reload();
