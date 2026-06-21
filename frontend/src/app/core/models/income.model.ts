@@ -53,8 +53,14 @@ export interface Income {
   recurrence: RecurrenceType;
   status: IncomeStatus;
   payment_date: string;
+  payment_time?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  day_of_month?: number | null;
+  auto_add?: boolean;
+  is_auto_generated?: boolean;
+  recurring_parent_id?: string | null;
+  next_run_at?: string | null;
   category_id?: string | null;
   source_id?: string | null;
   source_name?: string | null;
@@ -80,6 +86,16 @@ export type IncomePayload = Partial<Omit<Income, 'id' | 'user_id' | 'created_at'
   amount: number;
   payment_date: string;
 };
+
+/** Scope of a recurring-salary update (mirrors backend UpdateScope). */
+export type UpdateScope = 'all' | 'this_month' | 'this_and_future' | 'future_only';
+
+/** Payload for a scoped update of a recurring income series. */
+export interface ScopedUpdatePayload {
+  scope: UpdateScope;
+  changes: Partial<IncomePayload>;
+}
+
 
 export interface IncomeFilters {
   search?: string | null;

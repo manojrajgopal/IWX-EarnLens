@@ -14,7 +14,17 @@ from app.core.constants import (
     RecurrenceType,
 )
 from app.modules.incomes.controllers.income_controller import IncomeController
-from app.modules.incomes.dependencies.income_dependencies import get_income_service
+from app.modules.incomes.dependencies.income_dependencies import (
+    get_income_service,
+    get_recurring_income_service,
+)
+from app.modules.incomes.recurring.schemas.recurring_schemas import (
+    ScopedUpdateRequest,
+    ScopedUpdateResult,
+)
+from app.modules.incomes.recurring.services.recurring_service import (
+    RecurringIncomeService,
+)
 from app.modules.incomes.schemas.filter_schemas import IncomeFilter
 from app.modules.incomes.schemas.income_schemas import (
     IncomeCreate,
@@ -122,6 +132,22 @@ async def update_income(
 ) -> APIResponse[IncomePublic]:
     data = await controller.update(user_id, income_id, payload)
     return APIResponse(data=data, message="Income entry updated.")
+
+
+@router.patch("/{income_id}/scoped", response_model=APIResponse[ScopedUpdateResult])
+async def update_income_scoped(
+    income_id: str,
+    payload: ScopedUpdateRequest,
+    user_id: str = Depends(get_current_user_id),
+    service: RecurringIncomeService = Depends(get_recurring_income_service),
+) -> APIResponse[ScopedUpdateResult]:
+    affected = await service.scoped_update(
+        user_id, income_id, payload.scope, payload.changes
+    )
+    return APIResponse(
+        data=ScopedUpdateResult(affected=affected),
+        message=f"Updated {affected} occurrence(s).",
+    )
 
 
 @router.delete("/{income_id}", response_model=APIResponse[dict])

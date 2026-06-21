@@ -2,11 +2,9 @@
   <div class="flex items-center gap-3 mb-6">
     <a routerLink="/app/income" class="btn btn-ghost">←</a>
     <div>
-      <h1 class="font-serif text-3xl font-bold">
-        {{ isEdit() ? 'Edit income' : 'Add income' }}
-      </h1>
+      <h1 class="font-serif text-3xl font-bold">Add income</h1>
       <p class="text-secondary text-sm mt-1">
-        {{ isEdit() ? 'Update the details of this entry.' : 'Record a new income entry.' }}
+        Record a new income entry. The form adapts to the type you choose.
       </p>
     </div>
   </div>
@@ -21,107 +19,198 @@
         <div class="card card-pad">
           <h2 class="font-serif text-lg font-semibold mb-4">Details</h2>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div class="sm:col-span-2">
-              <label class="field-label">Title</label>
-              <input class="input" formControlName="title" placeholder="e.g. October salary" />
-              @if (invalid('title')) {
-                <p class="error-text">A title is required.</p>
-              }
-            </div>
-
-            <div>
-              <label class="field-label">Amount</label>
-              <input class="input" type="number" step="0.01" formControlName="amount" />
-              @if (invalid('amount')) {
-                <p class="error-text">Enter a valid amount.</p>
-              }
-            </div>
-
-            <div>
-              <label class="field-label">Currency</label>
-              <select class="select" formControlName="currency">
-                @for (opt of currencyOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+            @if (isVisible('title')) {
+              <div class="sm:col-span-2">
+                <label class="field-label">Title</label>
+                <input class="input" formControlName="title" placeholder="e.g. October salary" />
+                @if (invalid('title')) {
+                  <p class="error-text">A title is required.</p>
                 }
-              </select>
-            </div>
+              </div>
+            }
 
-            <div>
-              <label class="field-label">Type</label>
-              <select class="select" formControlName="income_type">
-                @for (opt of typeOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+            @if (isVisible('amount')) {
+              <div>
+                <label class="field-label">Amount</label>
+                <input class="input" type="number" step="0.01" formControlName="amount" />
+                @if (invalid('amount')) {
+                  <p class="error-text">Enter a valid positive amount.</p>
                 }
-              </select>
-            </div>
+              </div>
+            }
 
-            <div>
-              <label class="field-label">Recurrence</label>
-              <select class="select" formControlName="recurrence">
-                @for (opt of recurrenceOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+            @if (isVisible('currency')) {
+              <div>
+                <label class="field-label">Currency</label>
+                <select class="select" formControlName="currency">
+                  @for (opt of currencyOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            @if (isVisible('income_type')) {
+              <div>
+                <label class="field-label">Type</label>
+                <select class="select" formControlName="income_type">
+                  @for (opt of typeOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            @if (isVisible('recurrence')) {
+              <div>
+                <label class="field-label">Recurrence</label>
+                <select class="select" formControlName="recurrence">
+                  @for (opt of recurrenceOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            @if (isVisible('status')) {
+              <div>
+                <label class="field-label">Status</label>
+                <select class="select" formControlName="status">
+                  @for (opt of statusOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            @if (isVisible('payment_date')) {
+              <div>
+                <label class="field-label">Payment date</label>
+                <input class="input" type="date" formControlName="payment_date" />
+                @if (invalid('payment_date')) {
+                  <p class="error-text">A date is required.</p>
                 }
-              </select>
-            </div>
+              </div>
+            }
 
-            <div>
-              <label class="field-label">Status</label>
-              <select class="select" formControlName="status">
-                @for (opt of statusOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-
-            <div>
-              <label class="field-label">Payment date</label>
-              <input class="input" type="date" formControlName="payment_date" />
-              @if (invalid('payment_date')) {
-                <p class="error-text">A date is required.</p>
-              }
-            </div>
+            @if (isVisible('payment_time')) {
+              <div>
+                <label class="field-label">Payment time</label>
+                <input class="input" type="time" formControlName="payment_time" />
+                <p class="text-muted text-xs mt-1">Optional — when in the day it's received.</p>
+              </div>
+            }
           </div>
         </div>
+
+        <!-- recurrence / automation -->
+        @if (isVisible('start_date') || isVisible('day_of_month') || isVisible('auto_add')) {
+          <div class="card card-pad">
+            <h2 class="font-serif text-lg font-semibold mb-1">Schedule &amp; automation</h2>
+            <p class="text-secondary text-sm mb-4">
+              Define how this income repeats and let EarnLens record it for you.
+            </p>
+            <div class="grid sm:grid-cols-2 gap-4">
+              @if (isVisible('start_date')) {
+                <div>
+                  <label class="field-label">Start date</label>
+                  <input class="input" type="date" formControlName="start_date" />
+                  @if (form.errors?.['startRequired']) {
+                    <p class="error-text">A start date is required to automate this income.</p>
+                  }
+                </div>
+              }
+              @if (isVisible('end_date')) {
+                <div>
+                  <label class="field-label">End date <span class="text-muted">(optional)</span></label>
+                  <input class="input" type="date" formControlName="end_date" />
+                  @if (form.errors?.['dateRange']) {
+                    <p class="error-text">End date must be after the start date.</p>
+                  }
+                </div>
+              }
+              @if (isVisible('day_of_month')) {
+                <div>
+                  <label class="field-label">Pay day of month</label>
+                  <select class="select" formControlName="day_of_month">
+                    @for (d of dayOptions; track d) {
+                      <option [value]="d">{{ d }}</option>
+                    }
+                  </select>
+                  <p class="text-muted text-xs mt-1">1–28 so it lands every month.</p>
+                </div>
+              }
+              @if (canAutomate()) {
+                <div class="sm:col-span-2">
+                  <label class="flex items-start gap-3 text-sm cursor-pointer p-3 rounded-lg border border-[var(--border-color)] bg-[var(--accent-soft)]">
+                    <input type="checkbox" formControlName="auto_add" class="accent-[var(--accent)] w-4 h-4 mt-0.5" />
+                    <span>
+                      <span class="font-semibold text-[var(--text-primary)]">Add automatically</span>
+                      <span class="block text-secondary mt-0.5">
+                        EarnLens will record this income on each cycle without any manual entry.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              }
+            </div>
+
+            <app-recurrence-preview
+              [recurrence]="recurrence()"
+              [startDate]="form.controls.start_date.value || null"
+              [dayOfMonth]="form.controls.day_of_month.value"
+              [autoAdd]="autoAdd()"
+            />
+          </div>
+        }
 
         <!-- organization -->
         <div class="card card-pad">
           <h2 class="font-serif text-lg font-semibold mb-4">Organization</h2>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="field-label">Category</label>
-              <select class="select" formControlName="category_id">
-                <option value="">No category</option>
-                @for (c of categories(); track c.id) {
-                  <option [value]="c.id">{{ c.name }}</option>
-                }
-              </select>
-            </div>
-            <div>
-              <label class="field-label">Source</label>
-              <select class="select" formControlName="source_id">
-                <option value="">No source</option>
-                @for (s of sources(); track s.id) {
-                  <option [value]="s.id">{{ s.name }}</option>
-                }
-              </select>
-            </div>
-            <div>
-              <label class="field-label">Payment mode</label>
-              <select class="select" formControlName="payment_mode">
-                <option value="">Not specified</option>
-                @for (opt of paymentModeOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="flex items-end">
-              <label class="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" formControlName="is_taxable" class="accent-[var(--accent)] w-4 h-4" />
-                Taxable income
-              </label>
-            </div>
+            @if (isVisible('category_id')) {
+              <div>
+                <label class="field-label">Category</label>
+                <select class="select" formControlName="category_id">
+                  <option value="">No category</option>
+                  @for (c of categories(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+            @if (isVisible('source_id')) {
+              <div>
+                <label class="field-label">Source</label>
+                <select class="select" formControlName="source_id">
+                  <option value="">No source</option>
+                  @for (s of sources(); track s.id) {
+                    <option [value]="s.id">{{ s.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+            @if (isVisible('payment_mode')) {
+              <div>
+                <label class="field-label">Payment mode</label>
+                <select class="select" formControlName="payment_mode">
+                  <option value="">Not specified</option>
+                  @for (opt of paymentModeOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+            @if (isVisible('is_taxable')) {
+              <div class="flex items-end">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" formControlName="is_taxable" class="accent-[var(--accent)] w-4 h-4" />
+                  Taxable income
+                </label>
+              </div>
+            }
 
-            @if (tags().length) {
+            @if (isVisible('tag_ids') && tags().length) {
               <div class="sm:col-span-2">
                 <label class="field-label">Tags</label>
                 <div class="flex flex-wrap gap-2">
@@ -143,32 +232,54 @@
         </div>
 
         <!-- extra -->
-        <div class="card card-pad flex-1">
-          <h2 class="font-serif text-lg font-semibold mb-4">Additional info</h2>
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="field-label">Client</label>
-              <input class="input" formControlName="client" placeholder="Optional" />
-            </div>
-            <div>
-              <label class="field-label">Employer</label>
-              <input class="input" formControlName="employer" placeholder="Optional" />
-            </div>
-            <div>
-              <label class="field-label">Platform</label>
-              <input class="input" formControlName="platform" placeholder="e.g. Upwork" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="field-label">Notes</label>
-              <textarea class="textarea" rows="4" formControlName="notes" placeholder="Anything to remember…"></textarea>
+        @if (isVisible('client') || isVisible('employer') || isVisible('platform') || isVisible('project_name') || isVisible('reference_number') || isVisible('notes')) {
+          <div class="card card-pad flex-1">
+            <h2 class="font-serif text-lg font-semibold mb-4">Additional info</h2>
+            <div class="grid sm:grid-cols-2 gap-4">
+              @if (isVisible('client')) {
+                <div>
+                  <label class="field-label">Client</label>
+                  <input class="input" formControlName="client" placeholder="Optional" />
+                </div>
+              }
+              @if (isVisible('employer')) {
+                <div>
+                  <label class="field-label">Employer</label>
+                  <input class="input" formControlName="employer" placeholder="Optional" />
+                </div>
+              }
+              @if (isVisible('platform')) {
+                <div>
+                  <label class="field-label">Platform</label>
+                  <input class="input" formControlName="platform" placeholder="e.g. Upwork" />
+                </div>
+              }
+              @if (isVisible('project_name')) {
+                <div>
+                  <label class="field-label">Project</label>
+                  <input class="input" formControlName="project_name" placeholder="Optional" />
+                </div>
+              }
+              @if (isVisible('reference_number')) {
+                <div>
+                  <label class="field-label">Reference no.</label>
+                  <input class="input" formControlName="reference_number" placeholder="Optional" />
+                </div>
+              }
+              @if (isVisible('notes')) {
+                <div class="sm:col-span-2">
+                  <label class="field-label">Notes</label>
+                  <textarea class="textarea" rows="4" formControlName="notes" placeholder="Anything to remember…"></textarea>
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
 
         <div class="flex gap-3 justify-end pb-2">
           <a routerLink="/app/income" class="btn btn-ghost">Cancel</a>
           <button class="btn btn-primary" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : isEdit() ? 'Save changes' : 'Add income' }}
+            {{ saving() ? 'Saving…' : 'Add income' }}
           </button>
         </div>
       </div>
@@ -185,7 +296,12 @@
             <div class="h-px bg-[var(--border-color)]"></div>
             <div>
               <p class="font-semibold text-[var(--text-primary)] mb-0.5">Type &amp; Recurrence</p>
-              <p>Mark if it's salary, freelance, investment, etc. and whether it repeats regularly.</p>
+              <p>The form reshapes itself to the type you pick. Recurring types unlock schedule &amp; automation.</p>
+            </div>
+            <div class="h-px bg-[var(--border-color)]"></div>
+            <div>
+              <p class="font-semibold text-[var(--text-primary)] mb-0.5">Automation</p>
+              <p>Turn on "Add automatically" for salary-style income and EarnLens records it each cycle for you.</p>
             </div>
             <div class="h-px bg-[var(--border-color)]"></div>
             <div>
@@ -197,14 +313,22 @@
               <p class="font-semibold text-[var(--text-primary)] mb-0.5">Taxable</p>
               <p>Check this box if this income is subject to tax — it will appear in tax-related reports.</p>
             </div>
-            <div class="h-px bg-[var(--border-color)]"></div>
-            <div>
-              <p class="font-semibold text-[var(--text-primary)] mb-0.5">Additional info</p>
-              <p>Client, employer and platform fields are optional but help you trace the source later.</p>
-            </div>
           </div>
         </div>
       </div>
     </form>
+  }
+
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [title]="canAutomate() && form.controls.auto_add.value ? 'Enable automation?' : 'Add this income?'"
+      [message]="confirmMessage()"
+      [icon]="canAutomate() && form.controls.auto_add.value ? '🔁' : '＋'"
+      [tone]="canAutomate() && form.controls.auto_add.value ? 'caution' : 'primary'"
+      confirmLabel="Yes, add it"
+      cancelLabel="Review again"
+      (confirmed)="confirmSave()"
+      (cancelled)="cancelConfirm()"
+    />
   }
 </div>

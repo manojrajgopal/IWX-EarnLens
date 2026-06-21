@@ -80,8 +80,8 @@ export const routes: Routes = [
       {
         path: 'income/:id/edit',
         loadComponent: () =>
-          import('./features/income/income-form/income-form.component').then(
-            (m) => m.IncomeFormComponent,
+          import('./features/income/income-edit/income-edit.component').then(
+            (m) => m.IncomeEditComponent,
           ),
       },
       {

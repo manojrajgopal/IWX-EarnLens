@@ -17,18 +17,26 @@ from app.db.mongodb import (
     connect_to_mongo,
     get_database,
 )
+from app.modules.incomes.recurring.scheduler.recurring_scheduler import (
+    RecurringIncomeScheduler,
+)
 
 logger = get_logger("earnlens.app")
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Manage startup/shutdown: DB connection and index creation."""
+    """Manage startup/shutdown: DB connection, indexes and the scheduler."""
     configure_logging()
     await connect_to_mongo()
     await ensure_indexes(get_database())
+
+    scheduler = RecurringIncomeScheduler(get_database())
+    scheduler.start()
+
     logger.info("%s started (env=%s)", settings.APP_NAME, settings.APP_ENV)
     yield
+    await scheduler.stop()
     await close_mongo_connection()
     logger.info("%s shut down", settings.APP_NAME)
 

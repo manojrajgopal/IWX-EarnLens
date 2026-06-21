@@ -1,0 +1,147 @@
+.cd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, #000 55%, transparent);
+  backdrop-filter: blur(4px);
+  animation: cd-fade 0.18s ease;
+}
+
+.cd-panel {
+  width: 100%;
+  max-width: 30rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-lg, 1rem);
+  padding: 1.75rem;
+  text-align: center;
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35);
+  animation: cd-rise 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cd-panel--caution {
+  border-color: color-mix(in srgb, #f59e0b 55%, var(--border-color));
+  box-shadow: 0 0 0 1px color-mix(in srgb, #f59e0b 30%, transparent),
+    0 24px 60px -12px rgba(0, 0, 0, 0.4);
+}
+
+.cd-panel--danger {
+  border-color: color-mix(in srgb, var(--negative) 60%, var(--border-color));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--negative) 35%, transparent),
+    0 24px 60px -12px rgba(0, 0, 0, 0.45);
+}
+
+.cd-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+.cd-panel--caution .cd-icon {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  color: #f59e0b;
+}
+.cd-panel--danger .cd-icon {
+  background: color-mix(in srgb, var(--negative) 16%, transparent);
+  color: var(--negative);
+}
+
+.cd-title {
+  font-family: var(--font-serif, serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.cd-message {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+
+.cd-gate {
+  text-align: left;
+  margin: 0.5rem 0 1rem;
+}
+.cd-gate-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+.cd-gate-input {
+  width: 100%;
+  background: var(--bg-base, var(--bg-surface));
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+.cd-gate-input:focus {
+  outline: none;
+  border-color: var(--negative);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--negative) 16%, transparent);
+}
+
+.cd-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.cd-btn {
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--r-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+.cd-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.cd-btn:not(:disabled):active {
+  transform: translateY(1px);
+}
+.cd-btn--ghost {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+.cd-btn--primary {
+  background: var(--text-primary);
+  color: var(--bg-surface);
+}
+.cd-btn--caution {
+  background: #f59e0b;
+  color: #1a1206;
+}
+.cd-btn--danger {
+  background: var(--negative);
+  color: #fff;
+}
+
+@keyframes cd-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}

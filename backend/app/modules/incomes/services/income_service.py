@@ -3,7 +3,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.core.constants import RecurrenceType
 from app.core.exceptions import NotFoundError
+from app.modules.incomes.recurring.engine.recurrence_engine import (
+    clamp_day_of_month,
+    is_month_aligned,
+    is_recurring,
+    next_occurrence,
+)
 from app.modules.incomes.repositories.income_repository import IncomeRepository
 from app.modules.incomes.schemas.filter_schemas import IncomeFilter
 from app.modules.incomes.schemas.income_schemas import IncomeCreate, IncomeUpdate
@@ -20,7 +27,32 @@ class IncomeService:
     async def create(self, user_id: str, payload: IncomeCreate) -> Dict[str, Any]:
         data = payload.model_dump()
         data["user_id"] = user_id
+        data["next_run_at"] = self._initial_next_run(data)
         return await self.repository.create(data)
+
+    @staticmethod
+    def _initial_next_run(data: Dict[str, Any]) -> Optional[Any]:
+        """Compute the first scheduled run for an auto-adding recurring income.
+
+        The created document is itself the first occurrence, so the scheduler's
+        next run is set to the *following* cycle to avoid double-recording.
+        """
+        if not data.get("auto_add"):
+            return None
+        recurrence = data.get("recurrence")
+        if recurrence is None:
+            return None
+        recurrence = RecurrenceType(recurrence)
+        if not is_recurring(recurrence):
+            return None
+        anchor = data.get("start_date") or data.get("payment_date")
+        if anchor is None:
+            return None
+        day = data.get("day_of_month")
+        if is_month_aligned(recurrence) and day is not None:
+            anchor = anchor.replace(day=clamp_day_of_month(day))
+        return next_occurrence(recurrence, anchor, day_of_month=day)
+
 
     async def get(self, user_id: str, income_id: str) -> Dict[str, Any]:
         income = await self.repository.get_owned(income_id, user_id)

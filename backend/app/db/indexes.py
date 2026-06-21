@@ -22,6 +22,8 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await incomes.create_index([("user_id", ASCENDING), ("source_id", ASCENDING)])
     await incomes.create_index([("user_id", ASCENDING), ("recurrence", ASCENDING)])
     await incomes.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
+    await incomes.create_index([("recurring_parent_id", ASCENDING)])
+    await incomes.create_index([("auto_add", ASCENDING), ("next_run_at", ASCENDING)])
     await incomes.create_index([("title", TEXT), ("notes", TEXT), ("source_name", TEXT)])
 
     for name in (Collections.CATEGORIES, Collections.SOURCES, Collections.TAGS):

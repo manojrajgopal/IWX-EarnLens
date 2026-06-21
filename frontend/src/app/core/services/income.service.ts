@@ -2,7 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { PaginatedResponse } from '../models/api.model';
-import { Income, IncomeFilters, IncomePayload } from '../models/income.model';
+import {
+  Income,
+  IncomeFilters,
+  IncomePayload,
+  ScopedUpdatePayload,
+} from '../models/income.model';
 
 @Injectable({ providedIn: 'root' })
 export class IncomeService {
@@ -29,7 +34,13 @@ export class IncomeService {
     return this.api.patch<Income>(`/incomes/${id}`, payload);
   }
 
+  /** Scoped update of a recurring income series (this month / future / all). */
+  updateScoped(id: string, payload: ScopedUpdatePayload): Observable<{ affected: number }> {
+    return this.api.patch<{ affected: number }>(`/incomes/${id}/scoped`, payload);
+  }
+
   remove(id: string): Observable<{ deleted: boolean }> {
     return this.api.delete<{ deleted: boolean }>(`/incomes/${id}`);
   }
 }
+

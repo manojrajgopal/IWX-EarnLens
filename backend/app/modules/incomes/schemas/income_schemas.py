@@ -37,8 +37,16 @@ class IncomeBase(BaseSchema):
     status: IncomeStatus = IncomeStatus.RECEIVED
 
     payment_date: datetime
+    payment_time: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+
+    # Recurring-income automation.
+    day_of_month: Optional[int] = Field(default=None, ge=1, le=28)
+    auto_add: bool = False
+    is_auto_generated: bool = False
+    recurring_parent_id: Optional[str] = None
+    next_run_at: Optional[datetime] = None
 
     category_id: Optional[str] = None
     source_id: Optional[str] = None
@@ -80,8 +88,11 @@ class IncomeUpdate(BaseSchema):
     recurrence: Optional[RecurrenceType] = None
     status: Optional[IncomeStatus] = None
     payment_date: Optional[datetime] = None
+    payment_time: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+    day_of_month: Optional[int] = Field(default=None, ge=1, le=28)
+    auto_add: Optional[bool] = None
     category_id: Optional[str] = None
     source_id: Optional[str] = None
     source_name: Optional[str] = None

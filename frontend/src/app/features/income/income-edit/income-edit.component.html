@@ -1,0 +1,195 @@
+<div class="ie" [class.ie--unlocked]="unlocked()">
+  <div class="flex items-center gap-3 mb-6">
+    <a routerLink="/app/income" class="btn btn-ghost">←</a>
+    <div>
+      <h1 class="font-serif text-3xl font-bold">Edit income</h1>
+      <p class="text-secondary text-sm mt-1">Restricted area — changes here are tightly controlled.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-spinner height="300px" />
+  } @else {
+    <app-danger-banner
+      [level]="isRecurringIncome() ? 'danger' : 'caution'"
+      [title]="isRecurringIncome() ? 'Recurring income — handle with care' : 'Editing a recorded entry'"
+      [message]="
+        isRecurringIncome()
+          ? 'This income repeats. Editing can affect many months. You must choose a scope and confirm before anything is changed. Past records are protected.'
+          : 'This entry is already recorded. Fields are locked until you explicitly unlock them.'
+      "
+    />
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 flex flex-col gap-5">
+        <form [formGroup]="form" class="card card-pad ie__panel">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-serif text-lg font-semibold">Editable details</h2>
+            @if (!unlocked()) {
+              <button type="button" class="btn btn-ghost ie__unlock" (click)="unlock()">
+                🔒 Unlock to edit
+              </button>
+            } @else {
+              <button type="button" class="btn btn-ghost" (click)="relock()">
+                Discard &amp; lock
+              </button>
+            }
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="field-label">Title <span class="text-muted">(locked)</span></label>
+              <input class="input" formControlName="title" />
+              <p class="text-muted text-xs mt-1">Title can't be changed from the edit page.</p>
+            </div>
+
+            <div>
+              <label class="field-label">Amount</label>
+              <input class="input" type="number" step="0.01" formControlName="amount" />
+              @if (invalid('amount')) {
+                <p class="error-text">Enter a valid positive amount.</p>
+              }
+            </div>
+
+            <div>
+              <label class="field-label">Status</label>
+              <select class="select" formControlName="status">
+                @for (opt of statusOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="field-label">Payment date</label>
+              <input class="input" type="date" formControlName="payment_date" />
+              @if (invalid('payment_date')) {
+                <p class="error-text">A date is required.</p>
+              }
+            </div>
+
+            <div>
+              <label class="field-label">Payment time</label>
+              <input class="input" type="time" formControlName="payment_time" />
+            </div>
+
+            @if (isRecurringIncome()) {
+              <div>
+                <label class="field-label">Pay day of month</label>
+                <select class="select" formControlName="day_of_month">
+                  @for (d of dayOptions; track d) {
+                    <option [value]="d">{{ d }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            <div>
+              <label class="field-label">Payment mode</label>
+              <select class="select" formControlName="payment_mode">
+                <option value="">Not specified</option>
+                @for (opt of paymentModeOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="flex items-end">
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" formControlName="is_taxable" class="accent-[var(--accent)] w-4 h-4" />
+                Taxable income
+              </label>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="field-label">Notes</label>
+              <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+            </div>
+          </div>
+
+          <div class="flex gap-3 justify-end pt-5 mt-1 border-t border-[var(--border-color)]">
+            <a routerLink="/app/income" class="btn btn-ghost">Cancel</a>
+            <button
+              type="button"
+              class="btn ie__save"
+              [disabled]="!unlocked() || saving()"
+              (click)="beginSave()"
+            >
+              {{ saving() ? 'Saving…' : 'Review changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- locked info / read-only context -->
+      <div class="lg:col-span-1 flex flex-col gap-5">
+        <div class="card card-pad sticky top-4">
+          <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Locked details</h3>
+          @if (income(); as inc) {
+            <dl class="space-y-3 text-sm">
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Type</dt>
+                <dd class="font-medium text-right">{{ inc.income_type }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Recurrence</dt>
+                <dd class="font-medium text-right">{{ inc.recurrence }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-muted">Currency</dt>
+                <dd class="font-medium text-right">{{ inc.currency }}</dd>
+              </div>
+              @if (inc.auto_add) {
+                <div class="flex justify-between gap-3">
+                  <dt class="text-muted">Automation</dt>
+                  <dd class="font-medium text-right text-[var(--positive)]">On</dd>
+                </div>
+              }
+              @if (inc.is_auto_generated) {
+                <div class="flex justify-between gap-3">
+                  <dt class="text-muted">Origin</dt>
+                  <dd class="font-medium text-right">Auto-generated</dd>
+                </div>
+              }
+            </dl>
+          }
+          <p class="text-muted text-xs mt-4 leading-relaxed">
+            Type, recurrence and currency are immutable here. To change those, delete this entry and
+            create a new one from the add page.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- scope selection step (recurring only) -->
+  @if (step() === 'scope') {
+    <div class="ie__overlay" (click)="cancelFlow()">
+      <div class="ie__sheet" (click)="$event.stopPropagation()">
+        <h2 class="font-serif text-xl font-bold mb-1">How far should this change reach?</h2>
+        <app-scope-selector [selected]="scope()" (select)="chooseScope($event)" />
+        <div class="flex gap-3 justify-end mt-5">
+          <button type="button" class="btn btn-ghost" (click)="cancelFlow()">Cancel</button>
+          <button type="button" class="btn ie__save" [disabled]="!scope()" (click)="proceedFromScope()">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- final confirmation step -->
+  @if (step() === 'confirm') {
+    <app-confirm-dialog
+      title="Confirm this change"
+      [message]="confirmMessage()"
+      [icon]="requireTextGate() ? '⚠' : '✓'"
+      [tone]="requireTextGate() ? 'danger' : isRecurringIncome() ? 'caution' : 'primary'"
+      [requireText]="requireTextGate()"
+      confirmLabel="Apply change"
+      cancelLabel="Go back"
+      (confirmed)="commit()"
+      (cancelled)="cancelFlow()"
+    />
+  }
+</div>

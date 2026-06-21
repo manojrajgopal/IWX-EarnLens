@@ -30,8 +30,16 @@ class IncomeModel(BaseModel):
     status: IncomeStatus = IncomeStatus.RECEIVED
 
     payment_date: datetime
+    payment_time: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+
+    # Recurring-income automation.
+    day_of_month: Optional[int] = None
+    auto_add: bool = False
+    is_auto_generated: bool = False
+    recurring_parent_id: Optional[str] = None
+    next_run_at: Optional[datetime] = None
 
     category_id: Optional[str] = None
     source_id: Optional[str] = None
