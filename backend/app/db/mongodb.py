@@ -29,7 +29,11 @@ mongo = MongoManager()
 async def connect_to_mongo() -> None:
     """Open the MongoDB connection at application startup."""
     logger.info("Connecting to MongoDB at %s", settings.MONGODB_URI)
-    mongo.client = AsyncIOMotorClient(settings.MONGODB_URI, uuidRepresentation="standard")
+    mongo.client = AsyncIOMotorClient(
+        settings.MONGODB_URI,
+        uuidRepresentation="standard",
+        tz_aware=True,
+    )
     mongo.database = mongo.client[settings.MONGODB_DB_NAME]
     # Fail fast if the server is unreachable.
     await mongo.client.admin.command("ping")

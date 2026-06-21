@@ -4,19 +4,22 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from app.core.constants import RecurrenceType
+from app.core.constants import IncomeStatus, RecurrenceType
 from app.core.exceptions import NotFoundError
 from app.core.logging_config import get_logger
 from app.modules.incomes.recurring.constants.update_scope import UpdateScope
 from app.modules.incomes.recurring.engine.occurrence_generator import build_occurrence
 from app.modules.incomes.recurring.engine.recurrence_engine import (
+    align_first,
     clamp_day_of_month,
     is_recurring,
     next_occurrence,
+    occurrences_until,
 )
 from app.modules.incomes.recurring.schemas.recurring_schemas import ScopedUpdateChanges
 from app.modules.incomes.repositories.income_repository import IncomeRepository
 from app.shared.base_repository import to_object_id
+from app.shared.datetime_utils import ensure_utc, utcnow
 
 logger = get_logger("earnlens.incomes.recurring")
 
@@ -44,8 +47,68 @@ def _month_bounds(now: datetime) -> tuple[datetime, datetime]:
 class RecurringIncomeService:
     """Owns scoped editing and scheduled generation of recurring income."""
 
+    # Hard cap on how many past occurrences a single creation may back-fill.
+    MAX_BACKFILL = 600
+
     def __init__(self, repository: IncomeRepository) -> None:
         self.repository = repository
+
+    # ------------------------------------------------------------------ #
+    # Series creation (immediate back-fill of due occurrences)            #
+    # ------------------------------------------------------------------ #
+    async def create_series(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create an auto-recurring income and back-fill every due payment.
+
+        The template document is the first occurrence. Every additional
+        occurrence whose pay-day has already passed (up to today, or the end
+        date if earlier) is created immediately as its own record. The first
+        occurrence still in the future becomes ``next_run_at`` for the
+        scheduler to generate later.
+        """
+        now = utcnow()
+        recurrence = RecurrenceType(data["recurrence"])
+        day = data.get("day_of_month")
+        end = ensure_utc(data["end_date"]) if data.get("end_date") else None
+
+        anchor = data.get("start_date") or data.get("payment_date")
+        anchor = ensure_utc(anchor)
+        first = align_first(recurrence, anchor, day_of_month=day)
+
+        # Generate every occurrence that is already due (<= now, and <= end).
+        until = now if end is None else min(now, end)
+        due_dates = occurrences_until(
+            recurrence, first, until, day_of_month=day, limit=self.MAX_BACKFILL
+        )
+        child_dates = [d for d in due_dates if d > first]
+
+        # The scheduler resumes from the first not-yet-recorded occurrence.
+        last_recorded = child_dates[-1] if child_dates else first
+        candidate = next_occurrence(recurrence, last_recorded, day_of_month=day)
+        next_run_at = candidate if candidate and (end is None or candidate <= end) else None
+
+        data["user_id"] = user_id
+        data["payment_date"] = first
+        data["end_date"] = end
+        data["start_date"] = anchor
+        data["is_auto_generated"] = False
+        data["recurring_parent_id"] = None
+        data["next_run_at"] = next_run_at
+        if first > now:
+            # A future first payment is scheduled, not yet received.
+            data["status"] = IncomeStatus.SCHEDULED.value
+
+        template = await self.repository.create(data)
+
+        for occ_date in child_dates:
+            await self.repository.create(build_occurrence(template, occ_date))
+
+        if child_dates:
+            logger.info(
+                "Back-filled %d past occurrence(s) for new recurring income %s",
+                len(child_dates),
+                template.get("id"),
+            )
+        return template
 
     # ------------------------------------------------------------------ #
     # Scoped updates                                                     #
@@ -159,12 +222,14 @@ class RecurringIncomeService:
             return 0
 
         end = template.get("end_date")
+        end = ensure_utc(end) if end else None
         day = template.get("day_of_month")
         run_at = template.get("next_run_at")
+        run_at = ensure_utc(run_at) if run_at else None
         created = 0
         guard = 0  # prevent runaway loops on misconfigured data
 
-        while run_at is not None and run_at <= now and guard < 60:
+        while run_at is not None and run_at <= now and guard < self.MAX_BACKFILL:
             if end is not None and run_at > end:
                 run_at = None
                 break

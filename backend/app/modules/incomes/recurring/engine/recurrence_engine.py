@@ -120,3 +120,52 @@ def upcoming_occurrences(
             break
         cursor = nxt
     return results
+
+
+def align_first(
+    recurrence: RecurrenceType,
+    anchor: datetime,
+    *,
+    day_of_month: Optional[int] = None,
+) -> datetime:
+    """Return the first occurrence datetime for a schedule anchored at ``anchor``.
+
+    For month-aligned recurrences the day is pinned to ``day_of_month`` so the
+    series lands on a consistent pay-day each month.
+    """
+    if is_month_aligned(recurrence) and day_of_month is not None:
+        return anchor.replace(day=clamp_day_of_month(day_of_month))
+    return anchor
+
+
+def occurrences_until(
+    recurrence: RecurrenceType,
+    first: datetime,
+    until: datetime,
+    *,
+    day_of_month: Optional[int] = None,
+    limit: int = 600,
+) -> List[datetime]:
+    """Every occurrence from ``first`` up to and including ``until``.
+
+    Used to back-fill all already-due payments at creation time. ``first`` must
+    already be aligned (see :func:`align_first`). A ``limit`` guards against
+    runaway generation on misconfigured high-frequency schedules.
+    """
+    if first > until:
+        return []
+    if not is_recurring(recurrence):
+        return [first]
+
+    results: List[datetime] = []
+    cursor = first
+    count = 0
+    while cursor <= until and count < limit:
+        results.append(cursor)
+        nxt = next_occurrence(recurrence, cursor, day_of_month=day_of_month)
+        if nxt is None:
+            break
+        cursor = nxt
+        count += 1
+    return results
+

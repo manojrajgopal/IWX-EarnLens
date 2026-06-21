@@ -28,6 +28,25 @@ import {
             automatically. No manual entry needed.
           </p>
         }
+        @if (autoAdd() && backfill() > 0) {
+          <div class="rp__backfill">
+            <span class="rp__backfill-icon">⚡</span>
+            <p class="rp__backfill-text">
+              <strong>{{ backfill() }}</strong>
+              past {{ backfill() === 1 ? 'payment' : 'payments' }} will be credited
+              <strong>immediately</strong> on save (one record per period, from
+              {{ firstLabel() }} through today). Future periods are added
+              automatically as they arrive.
+            </p>
+          </div>
+        }
+        @if (autoAdd() && backfill() === 0 && futureStart()) {
+          <p class="rp__auto rp__auto--muted">
+            <span class="rp__dot rp__dot--idle"></span>
+            This schedule starts in the future — the first payment is recorded on
+            {{ firstLabel() }}.
+          </p>
+        }
         @if (upcoming().length) {
           <ul class="rp__dates">
             @for (d of upcoming(); track d) {
@@ -68,12 +87,37 @@ import {
         gap: 0.4rem;
         line-height: 1.5;
       }
+      .rp__auto--muted {
+        color: var(--text-tertiary, var(--text-secondary));
+      }
       .rp__dot {
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 999px;
         background: var(--positive, #16a34a);
         flex-shrink: 0;
+      }
+      .rp__dot--idle {
+        background: var(--text-tertiary, #9ca3af);
+      }
+      .rp__backfill {
+        margin-top: 0.7rem;
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        padding: 0.7rem 0.85rem;
+        border-radius: var(--r-sm);
+        background: color-mix(in srgb, var(--positive, #16a34a) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--positive, #16a34a) 35%, transparent);
+      }
+      .rp__backfill-icon {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+      .rp__backfill-text {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: var(--text-primary);
       }
       .rp__dates {
         display: flex;
@@ -108,6 +152,53 @@ export class RecurrencePreviewComponent {
       return `Repeats ${cadence} on day ${day}.`;
     }
     return `Repeats ${cadence}.`;
+  });
+
+  /** Aligned first occurrence date for the schedule (Date or null). */
+  private readonly first = computed<Date | null>(() => {
+    if (!this.recurs()) return null;
+    const raw = this.startDate() ? new Date(this.startDate() as string) : new Date();
+    if (isNaN(raw.getTime())) return null;
+    const first = new Date(raw);
+    const day = this.dayOfMonth();
+    if (day && isMonthAligned(this.recurrence())) {
+      first.setDate(Math.min(day, 28));
+    }
+    return first;
+  });
+
+  /** Number of already-due periods that will be back-filled immediately. */
+  protected readonly backfill = computed<number>(() => {
+    const first = this.first();
+    if (!first) return 0;
+    const now = new Date();
+    if (first > now) return 0;
+    let count = 0;
+    const cursor = new Date(first);
+    // Cap iterations defensively to match the backend limit.
+    while (cursor <= now && count < 600) {
+      count++;
+      this.advance(cursor);
+      if (this.dayOfMonth() && isMonthAligned(this.recurrence())) {
+        cursor.setDate(Math.min(this.dayOfMonth() as number, 28));
+      }
+    }
+    return count;
+  });
+
+  protected readonly futureStart = computed<boolean>(() => {
+    const first = this.first();
+    return !!first && first > new Date();
+  });
+
+  protected readonly firstLabel = computed<string>(() => {
+    const first = this.first();
+    if (!first) return '';
+    return new Intl.DateTimeFormat(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(first);
   });
 
   protected readonly upcoming = computed<string[]>(() => {

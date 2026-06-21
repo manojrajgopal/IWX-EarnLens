@@ -5,11 +5,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.constants import RecurrenceType
 from app.core.exceptions import NotFoundError
-from app.modules.incomes.recurring.engine.recurrence_engine import (
-    clamp_day_of_month,
-    is_month_aligned,
-    is_recurring,
-    next_occurrence,
+from app.modules.incomes.recurring.engine.recurrence_engine import is_recurring
+from app.modules.incomes.recurring.services.recurring_service import (
+    RecurringIncomeService,
 )
 from app.modules.incomes.repositories.income_repository import IncomeRepository
 from app.modules.incomes.schemas.filter_schemas import IncomeFilter
@@ -26,32 +24,20 @@ class IncomeService:
 
     async def create(self, user_id: str, payload: IncomeCreate) -> Dict[str, Any]:
         data = payload.model_dump()
+        if self._is_auto_recurring(data):
+            recurring = RecurringIncomeService(self.repository)
+            return await recurring.create_series(user_id, data)
         data["user_id"] = user_id
-        data["next_run_at"] = self._initial_next_run(data)
+        data["next_run_at"] = None
         return await self.repository.create(data)
 
     @staticmethod
-    def _initial_next_run(data: Dict[str, Any]) -> Optional[Any]:
-        """Compute the first scheduled run for an auto-adding recurring income.
-
-        The created document is itself the first occurrence, so the scheduler's
-        next run is set to the *following* cycle to avoid double-recording.
-        """
+    def _is_auto_recurring(data: Dict[str, Any]) -> bool:
+        """True when the entry should auto-generate (and back-fill) occurrences."""
         if not data.get("auto_add"):
-            return None
+            return False
         recurrence = data.get("recurrence")
-        if recurrence is None:
-            return None
-        recurrence = RecurrenceType(recurrence)
-        if not is_recurring(recurrence):
-            return None
-        anchor = data.get("start_date") or data.get("payment_date")
-        if anchor is None:
-            return None
-        day = data.get("day_of_month")
-        if is_month_aligned(recurrence) and day is not None:
-            anchor = anchor.replace(day=clamp_day_of_month(day))
-        return next_occurrence(recurrence, anchor, day_of_month=day)
+        return recurrence is not None and is_recurring(RecurrenceType(recurrence))
 
 
     async def get(self, user_id: str, income_id: str) -> Dict[str, Any]:
