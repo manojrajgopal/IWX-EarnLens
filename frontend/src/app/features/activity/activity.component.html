@@ -1,12 +1,13 @@
-<div class="mb-7">
-  <h1 class="font-serif text-3xl font-bold">Activity</h1>
-  <p class="text-secondary text-sm mt-1">A timeline of recent actions on your account.</p>
-</div>
+<div class="flex-1 flex flex-col">
+  <div class="mb-7">
+    <h1 class="font-serif text-3xl font-bold">Activity</h1>
+    <p class="text-secondary text-sm mt-1">A timeline of recent actions on your account.</p>
+  </div>
 
 @if (loading()) {
   <app-spinner height="260px" />
 } @else if (logs().length) {
-  <div class="card card-pad">
+  <div class="card card-pad flex-1">
     <ul class="timeline">
       @for (log of logs(); track log.id) {
         <li class="timeline-item">
@@ -42,7 +43,8 @@
     }
   }
 } @else {
-  <div class="card">
+  <div class="card flex-1">
     <app-empty-state icon="↻" title="No activity yet" message="Your actions will appear here." />
   </div>
 }
+</div>

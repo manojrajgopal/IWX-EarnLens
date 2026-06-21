@@ -25,7 +25,7 @@ import { TopbarComponent } from '../topbar/topbar.component';
       <div class="flex-1 flex flex-col min-w-0">
         <app-topbar (toggleSidebar)="drawerOpen.set(true)" />
         <main class="main-scroll">
-          <div class="mx-auto w-full max-w-7xl px-5 py-7 sm:px-7">
+          <div class="page-content">
             <router-outlet />
           </div>
         </main>
@@ -43,6 +43,22 @@ import { TopbarComponent } from '../topbar/topbar.component';
       .main-scroll {
         flex: 1;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .page-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 90rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+      }
+      @media (min-width: 640px) {
+        .page-content {
+          padding: 2rem 2rem;
+        }
       }
       .drawer-overlay {
         position: fixed;

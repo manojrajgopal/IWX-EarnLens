@@ -1,78 +1,137 @@
-<div class="max-w-3xl mx-auto">
+<div class="flex-1 flex flex-col">
   <div class="mb-7">
     <h1 class="font-serif text-3xl font-bold">Profile</h1>
     <p class="text-secondary text-sm mt-1">Manage your personal information and security.</p>
   </div>
 
-  <!-- identity -->
-  <div class="card card-pad mb-6 flex items-center gap-4">
-    <span class="profile-avatar">{{ initials() }}</span>
-    <div class="min-w-0">
-      <p class="font-serif text-xl font-bold truncate">{{ user()?.full_name }}</p>
-      <p class="text-sm text-muted truncate">{{ user()?.email }}</p>
-      <p class="text-xs text-muted mt-1">
-        Member since {{ user()?.created_at | timeAgo }}
-        @if (user()?.is_email_verified) {
-          · <span class="text-positive">Verified</span>
-        }
-      </p>
+  <div class="grid lg:grid-cols-3 gap-6 flex-1">
+    <!-- left column — info & forms -->
+    <div class="lg:col-span-2 flex flex-col gap-6">
+      <!-- identity -->
+      <div class="card card-pad flex items-center gap-4">
+        <span class="profile-avatar">{{ initials() }}</span>
+        <div class="min-w-0 flex-1">
+          <p class="font-serif text-xl font-bold truncate">{{ user()?.full_name }}</p>
+          <p class="text-sm text-muted truncate">{{ user()?.email }}</p>
+          <p class="text-xs text-muted mt-1">
+            Member since {{ user()?.created_at | timeAgo }}
+            @if (user()?.is_email_verified) {
+              · <span class="text-positive">Verified</span>
+            }
+          </p>
+        </div>
+      </div>
+
+      <!-- profile form -->
+      <div class="card card-pad">
+        <h2 class="font-serif text-lg font-semibold mb-4">Personal information</h2>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="grid sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="field-label">Full name</label>
+            <input class="input" formControlName="full_name" />
+            @if (invalid('profile', 'full_name')) {
+              <p class="error-text">Name is required.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label">Default currency</label>
+            <select class="select" formControlName="default_currency">
+              @for (opt of currencyOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Avatar URL</label>
+            <input class="input" formControlName="avatar_url" placeholder="https://" />
+          </div>
+          <div class="sm:col-span-2 flex justify-end">
+            <button class="btn btn-primary" [disabled]="savingProfile()">
+              {{ savingProfile() ? 'Saving…' : 'Save changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- password form -->
+      <div class="card card-pad flex-1">
+        <h2 class="font-serif text-lg font-semibold mb-4">Change password</h2>
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">Current password</label>
+            <input class="input" type="password" formControlName="current_password" />
+            @if (invalid('password', 'current_password')) {
+              <p class="error-text">Required.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label">New password</label>
+            <input class="input" type="password" formControlName="new_password" />
+            @if (invalid('password', 'new_password')) {
+              <p class="error-text">At least 8 characters.</p>
+            }
+          </div>
+          <div class="sm:col-span-2 flex justify-end">
+            <button class="btn btn-secondary" [disabled]="savingPassword()">
+              {{ savingPassword() ? 'Updating…' : 'Update password' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- profile form -->
-  <div class="card card-pad mb-6">
-    <h2 class="font-serif text-lg font-semibold mb-4">Personal information</h2>
-    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="grid sm:grid-cols-2 gap-4">
-      <div class="sm:col-span-2">
-        <label class="field-label">Full name</label>
-        <input class="input" formControlName="full_name" />
-        @if (invalid('profile', 'full_name')) {
-          <p class="error-text">Name is required.</p>
-        }
+    <!-- right sidebar — account info -->
+    <div class="lg:col-span-1 flex flex-col gap-6">
+      <div class="card card-pad">
+        <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Account summary</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Email</span>
+            <span class="font-medium truncate ml-2 max-w-[180px]">{{ user()?.email }}</span>
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Status</span>
+            @if (user()?.is_email_verified) {
+              <span class="badge text-positive">Verified</span>
+            } @else {
+              <span class="badge text-negative">Unverified</span>
+            }
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Currency</span>
+            <span class="font-medium">{{ user()?.default_currency }}</span>
+          </div>
+          <div class="h-px bg-[var(--border-color)]"></div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">Joined</span>
+            <span class="font-medium">{{ user()?.created_at | timeAgo }}</span>
+          </div>
+        </div>
       </div>
-      <div>
-        <label class="field-label">Default currency</label>
-        <select class="select" formControlName="default_currency">
-          @for (opt of currencyOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
-      </div>
-      <div>
-        <label class="field-label">Avatar URL</label>
-        <input class="input" formControlName="avatar_url" placeholder="https://" />
-      </div>
-      <div class="sm:col-span-2 flex justify-end">
-        <button class="btn btn-primary" [disabled]="savingProfile()">
-          {{ savingProfile() ? 'Saving…' : 'Save changes' }}
-        </button>
-      </div>
-    </form>
-  </div>
 
-  <!-- password form -->
-  <div class="card card-pad">
-    <h2 class="font-serif text-lg font-semibold mb-4">Change password</h2>
-    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="grid sm:grid-cols-2 gap-4">
-      <div>
-        <label class="field-label">Current password</label>
-        <input class="input" type="password" formControlName="current_password" />
-        @if (invalid('password', 'current_password')) {
-          <p class="error-text">Required.</p>
-        }
+      <div class="card card-pad flex-1">
+        <h3 class="text-sm font-semibold mb-3 uppercase tracking-wider text-muted">Security tips</h3>
+        <ul class="space-y-3 text-sm text-secondary">
+          <li class="flex gap-2">
+            <span class="shrink-0">🔒</span>
+            <span>Use a unique password with at least 8 characters, mixing letters, numbers and symbols.</span>
+          </li>
+          <li class="flex gap-2">
+            <span class="shrink-0">🔑</span>
+            <span>Change your password regularly and never reuse passwords across services.</span>
+          </li>
+          <li class="flex gap-2">
+            <span class="shrink-0">📧</span>
+            <span>Keep your email verified for account recovery and security notifications.</span>
+          </li>
+          <li class="flex gap-2">
+            <span class="shrink-0">🛡️</span>
+            <span>Review your activity log regularly to spot unauthorized access.</span>
+          </li>
+        </ul>
       </div>
-      <div>
-        <label class="field-label">New password</label>
-        <input class="input" type="password" formControlName="new_password" />
-        @if (invalid('password', 'new_password')) {
-          <p class="error-text">At least 8 characters.</p>
-        }
-      </div>
-      <div class="sm:col-span-2 flex justify-end">
-        <button class="btn btn-secondary" [disabled]="savingPassword()">
-          {{ savingPassword() ? 'Updating…' : 'Update password' }}
-        </button>
-      </div>
-    </form>
+    </div>
   </div>
 </div>
