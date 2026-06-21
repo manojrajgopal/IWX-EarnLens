@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../core/services/profile.service';
@@ -17,6 +17,7 @@ import { passwordMatch } from '../auth/shared/validators/auth.validators';
 })
 export class ProfileComponent implements OnInit {
   private readonly profileApi = inject(ProfileService);
+  private readonly location = inject(Location);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
@@ -99,5 +100,9 @@ export class ProfileComponent implements OnInit {
       },
       error: () => this.savingPassword.set(false),
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

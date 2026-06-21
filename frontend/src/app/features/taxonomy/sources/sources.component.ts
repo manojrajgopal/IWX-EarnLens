@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SourceService } from '../../../core/services/source.service';
@@ -18,6 +18,7 @@ import { IconPickerComponent, IconDisplayComponent } from '../../../shared/compo
 })
 export class SourcesComponent implements OnInit {
   private readonly api = inject(SourceService);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
   private readonly dialog = inject(DialogService);
@@ -111,5 +112,9 @@ export class SourcesComponent implements OnInit {
       this.toast.success('Source deleted.');
       this.load();
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

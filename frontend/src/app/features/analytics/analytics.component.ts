@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/services/analytics.service';
@@ -35,6 +35,7 @@ interface SelectOption<T> {
 })
 export class AnalyticsComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
+  private readonly location = inject(Location);
 
   readonly loading = signal(true);
   readonly graph = signal<GraphResponse | null>(null);
@@ -125,5 +126,9 @@ export class AnalyticsComponent implements OnInit {
 
   applyDates(): void {
     this.reload();
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

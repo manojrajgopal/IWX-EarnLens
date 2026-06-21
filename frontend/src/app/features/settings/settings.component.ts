@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PreferencesService } from '../../core/services/preferences.service';
@@ -16,6 +16,7 @@ import { SpinnerComponent } from '../../shared/ui/spinner/spinner.component';
 })
 export class SettingsComponent implements OnInit {
   private readonly api = inject(PreferencesService);
+  private readonly location = inject(Location);
   private readonly theme = inject(ThemeService);
   private readonly toast = inject(ToastService);
 
@@ -63,5 +64,9 @@ export class SettingsComponent implements OnInit {
       },
       error: () => this.saving.set(false),
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

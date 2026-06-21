@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../core/services/analytics.service';
@@ -31,6 +31,7 @@ import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 export class DashboardComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
   private readonly incomeApi = inject(IncomeService);
+  private readonly location = inject(Location);
 
   readonly loading = signal(true);
   readonly summary = signal<DashboardSummary | null>(null);
@@ -54,5 +55,9 @@ export class DashboardComponent implements OnInit {
       error: () => this.loading.set(false),
     });
     this.incomeApi.recent(6).subscribe((items) => this.recent.set(items));
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

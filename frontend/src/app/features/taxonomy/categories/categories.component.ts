@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryService } from '../../../core/services/category.service';
@@ -18,6 +18,7 @@ import { IconPickerComponent, IconDisplayComponent } from '../../../shared/compo
 })
 export class CategoriesComponent implements OnInit {
   private readonly api = inject(CategoryService);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
   private readonly dialog = inject(DialogService);
@@ -100,5 +101,9 @@ export class CategoriesComponent implements OnInit {
       this.toast.success('Category deleted.');
       this.load();
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

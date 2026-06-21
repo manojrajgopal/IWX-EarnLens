@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/services/report.service';
@@ -27,6 +27,7 @@ import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 })
 export class ReportsComponent {
   private readonly api = inject(ReportService);
+  private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
@@ -76,5 +77,9 @@ export class ReportsComponent {
 
   trendSeries(report: IncomeReport) {
     return [{ key: 'total', label: 'Income', points: report.trend }];
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

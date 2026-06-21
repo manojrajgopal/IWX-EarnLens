@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TagService } from '../../../core/services/tag.service';
@@ -17,6 +17,7 @@ import { EmptyStateComponent } from '../../../shared/ui/empty-state/empty-state.
 })
 export class TagsComponent implements OnInit {
   private readonly api = inject(TagService);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
   private readonly dialog = inject(DialogService);
@@ -92,5 +93,9 @@ export class TagsComponent implements OnInit {
       this.toast.success('Tag deleted.');
       this.load();
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

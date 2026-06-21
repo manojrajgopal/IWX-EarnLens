@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -38,6 +38,7 @@ import { HumanizePipe } from '../../../shared/pipes/humanize.pipe';
 })
 export class IncomeListComponent implements OnInit {
   private readonly incomeApi = inject(IncomeService);
+  private readonly location = inject(Location);
   private readonly categoryApi = inject(CategoryService);
   private readonly sourceApi = inject(SourceService);
   private readonly toast = inject(ToastService);
@@ -119,5 +120,9 @@ export class IncomeListComponent implements OnInit {
 
   categoryName(id?: string | null): string {
     return (id && this.categoryMap().get(id)?.name) || '—';
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivityService } from '../../core/services/activity.service';
 import { ActivityLog } from '../../core/models/preferences.model';
@@ -16,6 +16,7 @@ import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 })
 export class ActivityComponent implements OnInit {
   private readonly api = inject(ActivityService);
+  private readonly location = inject(Location);
 
   readonly loading = signal(true);
   readonly logs = signal<ActivityLog[]>([]);
@@ -49,5 +50,9 @@ export class ActivityComponent implements OnInit {
     if (action.includes('delete')) return '🗑';
     if (action.includes('login')) return '→';
     return '•';
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }
