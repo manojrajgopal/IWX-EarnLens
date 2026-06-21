@@ -44,14 +44,19 @@ import { PasswordFieldComponent } from '../../../shared/password-field/password-
       </div>
 
       <div class="lf__row" style="--d: 0.34s">
-        <button class="btn-primary lf__submit" type="submit" [disabled]="loading()">
-          @if (loading()) {
-            <span class="lf__spinner"></span>
-            <span>Signing in…</span>
-          } @else {
-            <span>Sign in</span>
-            <span class="lf__arrow">→</span>
-          }
+        <button class="lf__cta" type="submit" [disabled]="loading()" [class.lf__cta--loading]="loading()">
+          <span class="lf__cta-bg"></span>
+          <span class="lf__cta-shine"></span>
+          <span class="lf__cta-glow"></span>
+          <span class="lf__cta-content">
+            @if (loading()) {
+              <span class="lf__cta-spinner"></span>
+              <span>Signing in…</span>
+            } @else {
+              <span>Sign in</span>
+              <span class="lf__cta-arrow">→</span>
+            }
+          </span>
         </button>
       </div>
     </form>

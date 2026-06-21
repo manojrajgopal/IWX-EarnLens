@@ -103,14 +103,19 @@ import { PasswordFieldComponent } from '../../../shared/password-field/password-
       </div>
 
       <div class="rf__row" style="--d: 0.5s">
-        <button class="btn-primary rf__submit" type="submit" [disabled]="loading()">
-          @if (loading()) {
-            <span class="rf__spinner"></span>
-            <span>Creating account…</span>
-          } @else {
-            <span>Create account</span>
-            <span class="rf__arrow">→</span>
-          }
+        <button class="rf__cta" type="submit" [disabled]="loading()" [class.rf__cta--loading]="loading()">
+          <span class="rf__cta-bg"></span>
+          <span class="rf__cta-shine"></span>
+          <span class="rf__cta-glow"></span>
+          <span class="rf__cta-content">
+            @if (loading()) {
+              <span class="rf__cta-spinner"></span>
+              <span>Creating account…</span>
+            } @else {
+              <span>Create account</span>
+              <span class="rf__cta-arrow">→</span>
+            }
+          </span>
         </button>
       </div>
     </form>
