@@ -128,6 +128,14 @@ export class AnalyticsComponent implements OnInit {
     this.reload();
   }
 
+  clearFilters(): void {
+    this.groupBy.set('month');
+    this.splitBy.set(null);
+    this.startDate.set('');
+    this.endDate.set('');
+    this.reload();
+  }
+
   goBack(): void {
     this.location.back();
   }

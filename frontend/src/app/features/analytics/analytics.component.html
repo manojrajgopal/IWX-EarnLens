@@ -44,6 +44,7 @@
       <div class="flex gap-2">
         <input class="input" type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
         <button class="btn btn-secondary" (click)="applyDates()">Apply</button>
+        <button class="btn btn-ghost" (click)="clearFilters()">Clear</button>
       </div>
     </div>
   </div>
