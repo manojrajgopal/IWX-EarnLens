@@ -48,7 +48,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     `
       .auth-aside {
         position: relative;
-        background: linear-gradient(150deg, #4338ca 0%, #6366f1 55%, #8b5cf6 100%);
+        background: #0a0a0a;
         overflow: hidden;
       }
       .auth-aside::after {
@@ -56,8 +56,9 @@ import { RouterLink, RouterOutlet } from '@angular/router';
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.18), transparent 45%),
-          radial-gradient(circle at 10% 90%, rgba(255, 255, 255, 0.12), transparent 40%);
+          radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.08), transparent 42%),
+          radial-gradient(circle at 8% 92%, rgba(255, 255, 255, 0.05), transparent 38%),
+          repeating-linear-gradient(135deg, transparent 0 22px, rgba(255, 255, 255, 0.018) 22px 23px);
       }
     `,
   ],

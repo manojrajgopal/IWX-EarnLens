@@ -58,6 +58,10 @@
 .cta {
   text-align: center;
   padding: 3.5rem 2rem;
-  background: linear-gradient(140deg, #4338ca 0%, #6366f1 60%, #8b5cf6 100%);
+  background: var(--text-primary);
+  color: var(--bg-page);
   border: none;
+}
+.cta :is(h1, h2, h3, p) {
+  color: var(--bg-page);
 }
