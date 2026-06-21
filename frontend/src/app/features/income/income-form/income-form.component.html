@@ -318,17 +318,4 @@
       </div>
     </form>
   }
-
-  @if (showConfirm()) {
-    <app-confirm-dialog
-      [title]="canAutomate() && form.controls.auto_add.value ? 'Enable automation?' : 'Add this income?'"
-      [message]="confirmMessage()"
-      [icon]="canAutomate() && form.controls.auto_add.value ? '🔁' : '＋'"
-      [tone]="canAutomate() && form.controls.auto_add.value ? 'caution' : 'primary'"
-      confirmLabel="Yes, add it"
-      cancelLabel="Review again"
-      (confirmed)="confirmSave()"
-      (cancelled)="cancelConfirm()"
-    />
-  }
 </div>

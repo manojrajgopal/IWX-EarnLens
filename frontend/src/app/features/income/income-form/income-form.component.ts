@@ -9,6 +9,7 @@ import { SourceService } from '../../../core/services/source.service';
 import { TagService } from '../../../core/services/tag.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import { Category } from '../../../core/models/category.model';
 import { Source } from '../../../core/models/source.model';
 import { Tag } from '../../../core/models/tag.model';
@@ -33,7 +34,6 @@ import {
   recurringRequiresStart,
   safeDayOfMonth,
 } from '../engine/validators/income.validators';
-import { ConfirmDialogComponent } from '../components/confirm-dialog/confirm-dialog.component';
 import { RecurrencePreviewComponent } from '../components/recurrence-preview/recurrence-preview.component';
 
 @Component({
@@ -44,7 +44,6 @@ import { RecurrencePreviewComponent } from '../components/recurrence-preview/rec
     ReactiveFormsModule,
     RouterLink,
     SpinnerComponent,
-    ConfirmDialogComponent,
     RecurrencePreviewComponent,
   ],
   templateUrl: './income-form.component.html',
@@ -59,6 +58,7 @@ export class IncomeFormComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly visibility = inject(FieldVisibilityService);
+  private readonly dialog = inject(DialogService);
 
   readonly typeOptions = INCOME_TYPE_OPTIONS;
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
@@ -73,7 +73,6 @@ export class IncomeFormComponent implements OnInit {
   readonly sources = signal<Source[]>([]);
   readonly tags = signal<Tag[]>([]);
   readonly selectedTags = signal<string[]>([]);
-  readonly showConfirm = signal(false);
 
   /** Live form drivers for the dynamic visibility engine. */
   readonly incomeType = signal<IncomeType>('salary');
@@ -163,22 +162,29 @@ export class IncomeFormComponent implements OnInit {
     return !!control && control.invalid && (control.dirty || control.touched);
   }
 
-  /** Step 1 — validate then open the confirmation modal. */
-  submit(): void {
+  /** Step 1 — validate then open the cinematic confirmation dialog. */
+  async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.showConfirm.set(true);
-  }
-
-  cancelConfirm(): void {
-    this.showConfirm.set(false);
+    const raw = this.form.getRawValue();
+    const isAutomate = this.canAutomate() && raw.auto_add;
+    const ok = await this.dialog.confirm({
+      variant: isAutomate ? 'warning' : 'create',
+      title: isAutomate ? 'Enable automation?' : 'Add this income?',
+      message: this.confirmMessage(),
+      highlight: raw.title,
+      icon: isAutomate ? '🔁' : undefined,
+      confirmLabel: 'Yes, add it',
+      cancelLabel: 'Review again',
+    });
+    if (!ok) return;
+    this.doSave();
   }
 
   /** Step 2 — the user confirmed: persist the income. */
-  confirmSave(): void {
-    this.showConfirm.set(false);
+  private doSave(): void {
     const raw = this.form.getRawValue();
     const recurs = raw.recurrence !== 'one_time';
     const payload: IncomePayload = {
@@ -221,7 +227,7 @@ export class IncomeFormComponent implements OnInit {
     });
   }
 
-  confirmMessage(): string {
+  private confirmMessage(): string {
     const raw = this.form.getRawValue();
     if (this.canAutomate() && raw.auto_add) {
       return `You are about to create an automated ${raw.recurrence} income of ${raw.currency} ${raw.amount}. EarnLens will record this for you every cycle without manual entry.`;

@@ -177,19 +177,4 @@
       </div>
     </div>
   }
-
-  <!-- final confirmation step -->
-  @if (step() === 'confirm') {
-    <app-confirm-dialog
-      title="Confirm this change"
-      [message]="confirmMessage()"
-      [icon]="requireTextGate() ? '⚠' : '✓'"
-      [tone]="requireTextGate() ? 'danger' : isRecurringIncome() ? 'caution' : 'primary'"
-      [requireText]="requireTextGate()"
-      confirmLabel="Apply change"
-      cancelLabel="Go back"
-      (confirmed)="commit()"
-      (cancelled)="cancelFlow()"
-    />
-  }
 </div>

@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IncomeService } from '../../../core/services/income.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../shared/ui/dialog';
 import {
   Income,
   IncomePayload,
@@ -21,7 +22,6 @@ import {
 import { SpinnerComponent } from '../../../shared/ui/spinner/spinner.component';
 import { positiveAmount, safeDayOfMonth } from '../engine/validators/income.validators';
 import { isRecurring } from '../engine/config/recurrence-rules.config';
-import { ConfirmDialogComponent } from '../components/confirm-dialog/confirm-dialog.component';
 import { ScopeSelectorComponent } from '../components/scope-selector/scope-selector.component';
 import { DangerBannerComponent } from '../components/danger-banner/danger-banner.component';
 
@@ -39,7 +39,6 @@ import { DangerBannerComponent } from '../components/danger-banner/danger-banner
     ReactiveFormsModule,
     RouterLink,
     SpinnerComponent,
-    ConfirmDialogComponent,
     ScopeSelectorComponent,
     DangerBannerComponent,
   ],
@@ -52,6 +51,7 @@ export class IncomeEditComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(DialogService);
 
   readonly typeOptions = INCOME_TYPE_OPTIONS;
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
@@ -65,7 +65,7 @@ export class IncomeEditComponent implements OnInit {
   readonly unlocked = signal(false);
   readonly income = signal<Income | null>(null);
   readonly scope = signal<UpdateScope | null>(null);
-  readonly step = signal<'idle' | 'scope' | 'confirm'>('idle');
+  readonly step = signal<'idle' | 'scope'>('idle');
 
   /** A recurring income forces the scoped, high-restriction flow. */
   readonly isRecurringIncome = computed(() => {
@@ -149,7 +149,7 @@ export class IncomeEditComponent implements OnInit {
   }
 
   /** Begin the save flow — branch into scope choice or direct confirm. */
-  beginSave(): void {
+  async beginSave(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -158,7 +158,7 @@ export class IncomeEditComponent implements OnInit {
       this.scope.set(null);
       this.step.set('scope');
     } else {
-      this.step.set('confirm');
+      await this.showConfirmDialog();
     }
   }
 
@@ -166,17 +166,33 @@ export class IncomeEditComponent implements OnInit {
     this.scope.set(value);
   }
 
-  proceedFromScope(): void {
+  async proceedFromScope(): Promise<void> {
     if (!this.scope()) {
       this.toast.error('Choose which occurrences to update first.');
       return;
     }
-    this.step.set('confirm');
+    await this.showConfirmDialog();
   }
 
   cancelFlow(): void {
     this.step.set('idle');
     this.scope.set(null);
+  }
+
+  /** Show the cinematic confirm dialog and commit if accepted. */
+  private async showConfirmDialog(): Promise<void> {
+    const gate = this.requireTextGate();
+    const ok = await this.dialog.confirm({
+      variant: gate ? 'danger' : this.isRecurringIncome() ? 'warning' : 'update',
+      title: 'Confirm this change',
+      message: this.confirmMessage(),
+      icon: gate ? '⚠' : undefined,
+      requireText: gate ?? undefined,
+      confirmLabel: 'Apply change',
+      cancelLabel: 'Go back',
+    });
+    if (!ok) return;
+    this.commit();
   }
 
   /** Final write — uses scoped update for recurring, plain patch otherwise. */
