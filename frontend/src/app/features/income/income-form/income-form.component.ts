@@ -129,6 +129,12 @@ export class IncomeFormComponent implements OnInit {
     );
     this.form.controls.auto_add.valueChanges.subscribe((value) => this.autoAdd.set(!!value));
 
+    // Ensure the currency always matches the user's current preference.
+    const preferred = this.auth.currentUser()?.default_currency;
+    if (preferred && this.form.controls.currency.value !== preferred) {
+      this.form.controls.currency.setValue(preferred);
+    }
+
     forkJoin({
       categories: this.categoryApi.list(),
       sources: this.sourceApi.list(),

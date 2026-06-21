@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
+import { ProfileService } from '../../core/services/profile.service';
 
 @Component({
   selector: 'app-shell',
@@ -58,4 +59,11 @@ import { FooterComponent } from '../footer/footer.component';
     `,
   ],
 })
-export class AppShellComponent {}
+export class AppShellComponent implements OnInit {
+  private readonly profile = inject(ProfileService);
+
+  ngOnInit(): void {
+    // Refresh user profile so preferences (default_currency, etc.) stay current.
+    this.profile.me().subscribe();
+  }
+}
