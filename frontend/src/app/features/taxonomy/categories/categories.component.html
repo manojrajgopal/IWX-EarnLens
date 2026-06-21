@@ -1,0 +1,82 @@
+<div class="mb-7">
+  <h1 class="font-serif text-3xl font-bold">Categories</h1>
+  <p class="text-secondary text-sm mt-1">Group your income into meaningful buckets.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <!-- form -->
+  <div class="lg:col-span-1">
+    <div class="card card-pad sticky top-2">
+      <h2 class="font-serif text-lg font-semibold mb-4">
+        {{ editId() ? 'Edit category' : 'New category' }}
+      </h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+        <div>
+          <label class="field-label">Name</label>
+          <input class="input" formControlName="name" placeholder="e.g. Freelancing" />
+        </div>
+        <div>
+          <label class="field-label">Description</label>
+          <input class="input" formControlName="description" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="field-label">Icon (emoji)</label>
+          <input class="input" formControlName="icon" placeholder="e.g. 💼" maxlength="2" />
+        </div>
+        <div>
+          <label class="field-label">Color</label>
+          <div class="flex flex-wrap gap-2">
+            @for (color of palette; track color) {
+              <button
+                type="button"
+                class="swatch"
+                [class.swatch-active]="form.value.color === color"
+                [style.background]="color"
+                (click)="form.patchValue({ color })"
+              ></button>
+            }
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button class="btn btn-primary flex-1" [disabled]="saving()">
+            {{ editId() ? 'Save' : 'Create' }}
+          </button>
+          @if (editId()) {
+            <button type="button" class="btn btn-ghost" (click)="cancel()">Cancel</button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- list -->
+  <div class="lg:col-span-2">
+    @if (loading()) {
+      <app-spinner height="260px" />
+    } @else if (items().length) {
+      <div class="grid sm:grid-cols-2 gap-3">
+        @for (item of items(); track item.id) {
+          <div class="card card-pad flex items-start gap-3">
+            <span class="tax-icon" [style.background]="item.color + '22'" [style.color]="item.color">
+              {{ item.icon || '⬡' }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold truncate">{{ item.name }}</p>
+              @if (item.description) {
+                <p class="text-xs text-muted truncate">{{ item.description }}</p>
+              }
+            </div>
+            <div class="flex flex-col gap-1 shrink-0">
+              <button class="row-action" (click)="edit(item)">Edit</button>
+              <button class="row-action text-negative" (click)="remove(item)">Delete</button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card">
+        <app-empty-state icon="⬡" title="No categories yet" message="Create your first category to get started." />
+      </div>
+    }
+  </div>
+</div>

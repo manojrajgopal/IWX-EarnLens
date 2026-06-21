@@ -1,0 +1,86 @@
+<div class="max-w-3xl mx-auto">
+  <div class="mb-7">
+    <h1 class="font-serif text-3xl font-bold">Settings</h1>
+    <p class="text-secondary text-sm mt-1">Customize how EarnLens looks and behaves.</p>
+  </div>
+
+  @if (loading()) {
+    <app-spinner height="260px" />
+  } @else if (prefs(); as p) {
+    <!-- appearance -->
+    <div class="card card-pad mb-6">
+      <h2 class="font-serif text-lg font-semibold mb-1">Appearance</h2>
+      <p class="text-sm text-muted mb-4">Choose your preferred theme.</p>
+      <div class="grid grid-cols-3 gap-3">
+        @for (mode of themeModes; track mode.value) {
+          <button
+            class="theme-card"
+            [class.theme-active]="themeMode() === mode.value"
+            (click)="setTheme(mode.value)"
+          >
+            <span class="text-2xl">{{ mode.icon }}</span>
+            <span class="text-sm font-medium">{{ mode.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- defaults -->
+    <div class="card card-pad mb-6">
+      <h2 class="font-serif text-lg font-semibold mb-4">Defaults</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="field-label">Default currency</label>
+          <select
+            class="select"
+            [ngModel]="p.default_currency"
+            (ngModelChange)="update('default_currency', $event)"
+          >
+            @for (opt of currencyOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Default grouping</label>
+          <select
+            class="select"
+            [ngModel]="p.default_group_by"
+            (ngModelChange)="update('default_group_by', $event)"
+          >
+            @for (g of groupOptions; track g) {
+              <option [value]="g">{{ g }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Default chart style</label>
+          <select
+            class="select"
+            [ngModel]="p.default_chart_style"
+            (ngModelChange)="update('default_chart_style', $event)"
+          >
+            @for (s of chartStyles; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Week starts on</label>
+          <select
+            class="select"
+            [ngModel]="p.week_starts_on"
+            (ngModelChange)="update('week_starts_on', $event)"
+          >
+            <option value="monday">Monday</option>
+            <option value="sunday">Sunday</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    @if (saving()) {
+      <p class="text-sm text-muted text-right">Saving…</p>
+    }
+  }
+</div>

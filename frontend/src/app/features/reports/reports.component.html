@@ -1,0 +1,101 @@
+<div class="flex items-center justify-between flex-wrap gap-3 mb-7">
+  <div>
+    <h1 class="font-serif text-3xl font-bold">Reports</h1>
+    <p class="text-secondary text-sm mt-1">Generate summaries and export your data.</p>
+  </div>
+</div>
+
+<!-- controls -->
+<div class="card card-pad mb-6">
+  <div class="grid sm:grid-cols-3 gap-4 items-end">
+    <div>
+      <label class="field-label">From</label>
+      <input class="input" type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+    </div>
+    <div>
+      <label class="field-label">To</label>
+      <input class="input" type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary flex-1" (click)="generate()" [disabled]="loading()">
+        {{ loading() ? 'Generating…' : 'Generate' }}
+      </button>
+      <button class="btn btn-secondary" (click)="download()" [disabled]="downloading()">
+        {{ downloading() ? '…' : '⭳ CSV' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-spinner height="280px" />
+} @else if (report(); as r) {
+  <!-- summary -->
+  <div class="grid sm:grid-cols-4 gap-4 mb-6">
+    <div class="card card-pad">
+      <p class="field-label !mb-1">Total</p>
+      <p class="text-xl font-bold">{{ r.totals.total | money: r.currency }}</p>
+    </div>
+    <div class="card card-pad">
+      <p class="field-label !mb-1">Entries</p>
+      <p class="text-xl font-bold">{{ r.totals.count }}</p>
+    </div>
+    <div class="card card-pad">
+      <p class="field-label !mb-1">Average</p>
+      <p class="text-xl font-bold">{{ r.totals.average | money: r.currency }}</p>
+    </div>
+    <div class="card card-pad">
+      <p class="field-label !mb-1">Largest</p>
+      <p class="text-xl font-bold">{{ r.totals.maximum | money: r.currency }}</p>
+    </div>
+  </div>
+
+  <!-- trend -->
+  <div class="card card-pad mb-6">
+    <h2 class="font-serif text-xl font-semibold mb-4">Trend</h2>
+    <app-chart [labels]="trendLabels(r)" [series]="trendSeries(r)" style="area" [currency]="r.currency" />
+  </div>
+
+  <!-- rows -->
+  <div class="card overflow-hidden">
+    <div class="px-5 pt-5">
+      <h2 class="font-serif text-xl font-semibold">Entries</h2>
+    </div>
+    <div class="overflow-x-auto mt-3">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Source</th>
+            <th>Date</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of r.rows; track $index) {
+            <tr>
+              <td class="font-medium">{{ row.title }}</td>
+              <td><span class="badge">{{ row.income_type | humanize }}</span></td>
+              <td class="text-secondary">{{ row.category || '—' }}</td>
+              <td class="text-secondary">{{ row.source_name || '—' }}</td>
+              <td class="text-secondary whitespace-nowrap">{{ row.payment_date | date: 'mediumDate' }}</td>
+              <td class="text-right font-semibold whitespace-nowrap">
+                {{ row.amount | money: row.currency }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+} @else {
+  <div class="card">
+    <app-empty-state
+      icon="▤"
+      title="No report generated"
+      message="Pick a date range and generate a report to see your income summary."
+    />
+  </div>
+}

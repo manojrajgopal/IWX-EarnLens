@@ -1,0 +1,153 @@
+<!-- header -->
+<div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+  <div>
+    <h1 class="font-serif text-3xl font-bold">Income</h1>
+    <p class="text-secondary text-sm mt-1">
+      @if (meta()) {
+        {{ meta()!.total }} total entries
+      } @else {
+        All your income entries.
+      }
+    </p>
+  </div>
+  <a routerLink="/app/income/new" class="btn btn-primary">＋ Add income</a>
+</div>
+
+<!-- filters -->
+<div class="card card-pad mb-6">
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="lg:col-span-2">
+      <label class="field-label">Search</label>
+      <input
+        class="input"
+        placeholder="Title, client, notes…"
+        [ngModel]="filters().search"
+        (ngModelChange)="update('search', $event)"
+        (keyup.enter)="applyFilters()"
+      />
+    </div>
+    <div>
+      <label class="field-label">Type</label>
+      <select class="select" [ngModel]="filters().income_type" (ngModelChange)="update('income_type', $event)">
+        <option [ngValue]="null">All types</option>
+        @for (opt of typeOptions; track opt.value) {
+          <option [ngValue]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Status</label>
+      <select class="select" [ngModel]="filters().status" (ngModelChange)="update('status', $event)">
+        <option [ngValue]="null">All statuses</option>
+        @for (opt of statusOptions; track opt.value) {
+          <option [ngValue]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Category</label>
+      <select class="select" [ngModel]="filters().category_id" (ngModelChange)="update('category_id', $event)">
+        <option [ngValue]="null">All categories</option>
+        @for (c of categories(); track c.id) {
+          <option [ngValue]="c.id">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Source</label>
+      <select class="select" [ngModel]="filters().source_id" (ngModelChange)="update('source_id', $event)">
+        <option [ngValue]="null">All sources</option>
+        @for (s of sources(); track s.id) {
+          <option [ngValue]="s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="field-label">From</label>
+      <input class="input" type="date" [ngModel]="filters().start_date" (ngModelChange)="update('start_date', $event)" />
+    </div>
+    <div>
+      <label class="field-label">To</label>
+      <input class="input" type="date" [ngModel]="filters().end_date" (ngModelChange)="update('end_date', $event)" />
+    </div>
+  </div>
+  <div class="flex gap-2 mt-4">
+    <button class="btn btn-primary" (click)="applyFilters()">Apply filters</button>
+    <button class="btn btn-ghost" (click)="resetFilters()">Reset</button>
+  </div>
+</div>
+
+<!-- list -->
+@if (loading()) {
+  <app-spinner height="280px" />
+} @else if (incomes().length) {
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th class="text-right">Amount</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (income of incomes(); track income.id) {
+            <tr>
+              <td>
+                <p class="font-medium">{{ income.title }}</p>
+                @if (income.source_name) {
+                  <p class="text-xs text-muted">{{ income.source_name }}</p>
+                }
+              </td>
+              <td><span class="badge">{{ income.income_type | humanize }}</span></td>
+              <td class="text-secondary">{{ categoryName(income.category_id) }}</td>
+              <td class="text-secondary whitespace-nowrap">{{ income.payment_date | date: 'mediumDate' }}</td>
+              <td class="text-right font-semibold text-positive whitespace-nowrap">
+                {{ income.amount | money: income.currency }}
+              </td>
+              <td class="text-right whitespace-nowrap">
+                <a [routerLink]="['/app/income', income.id, 'edit']" class="row-action">Edit</a>
+                <button class="row-action text-negative" (click)="remove(income)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- pagination -->
+  @if (meta(); as m) {
+    @if (m.total_pages > 1) {
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-sm text-muted">Page {{ m.page }} of {{ m.total_pages }}</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" [disabled]="m.page <= 1" (click)="goToPage(m.page - 1)">
+            ← Prev
+          </button>
+          <button
+            class="btn btn-secondary"
+            [disabled]="m.page >= m.total_pages"
+            (click)="goToPage(m.page + 1)"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    }
+  }
+} @else {
+  <div class="card">
+    <app-empty-state
+      icon="＄"
+      title="No income found"
+      message="Try adjusting your filters or add a new income entry."
+    >
+      <a routerLink="/app/income/new" class="btn btn-primary mt-5">＋ Add income</a>
+    </app-empty-state>
+  </div>
+}

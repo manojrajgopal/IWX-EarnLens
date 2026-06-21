@@ -1,0 +1,148 @@
+<!-- header -->
+<div class="flex items-center justify-between flex-wrap gap-3 mb-7">
+  <div>
+    <h1 class="font-serif text-3xl font-bold">Dashboard</h1>
+    <p class="text-secondary text-sm mt-1">Your income at a glance.</p>
+  </div>
+  <a routerLink="/app/income/new" class="btn btn-primary">＋ Add income</a>
+</div>
+
+@if (loading()) {
+  <app-spinner height="320px" />
+} @else if (summary(); as s) {
+  <!-- stat cards -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <app-stat-card
+      label="Total income"
+      [value]="s.totals.total"
+      [currency]="currency()"
+      icon="＄"
+      accent="#6366f1"
+      [hint]="s.totals.count + ' entries'"
+    />
+    <app-stat-card
+      label="This month"
+      [value]="s.periods.this_month"
+      [currency]="currency()"
+      icon="◴"
+      accent="#10b981"
+      [trend]="s.growth.change_percent"
+      hint="vs last period"
+    />
+    <app-stat-card
+      label="Recurring"
+      [value]="s.recurring.recurring_total"
+      [currency]="currency()"
+      icon="↻"
+      accent="#f59e0b"
+      [hint]="s.recurring.recurring_count + ' recurring'"
+    />
+    <app-stat-card
+      label="Average entry"
+      [value]="s.totals.average"
+      [currency]="currency()"
+      icon="≈"
+      accent="#ec4899"
+      hint="per income"
+    />
+  </div>
+
+  <!-- chart -->
+  <div class="card card-pad mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-serif text-xl font-semibold">Income trend</h2>
+      <a routerLink="/app/analytics" class="text-sm text-[var(--accent)] hover:underline">
+        Open analytics →
+      </a>
+    </div>
+    <app-chart
+      [labels]="chartLabels()"
+      [series]="chartSeries()"
+      style="area"
+      [currency]="currency()"
+    />
+  </div>
+
+  <!-- breakdowns -->
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <!-- by category -->
+    <div class="card card-pad">
+      <h2 class="font-serif text-xl font-semibold mb-4">By category</h2>
+      @if (s.by_category.length) {
+        <div class="space-y-3">
+          @for (item of s.by_category; track item.key) {
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="flex items-center gap-2">
+                  <span class="dot" [style.background]="item.color || '#6366f1'"></span>
+                  {{ item.label }}
+                </span>
+                <span class="font-semibold">{{ item.total | money: currency() }}</span>
+              </div>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.width.%]="item.percentage"
+                  [style.background]="item.color || '#6366f1'"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <app-empty-state icon="⬡" title="No categories yet" message="Categorize income to see a breakdown." />
+      }
+    </div>
+
+    <!-- top sources -->
+    <div class="card card-pad">
+      <h2 class="font-serif text-xl font-semibold mb-4">Top sources</h2>
+      @if (s.top_sources.length) {
+        <ul class="divide-y divide-[var(--border-color)]">
+          @for (src of s.top_sources; track src.label) {
+            <li class="flex items-center justify-between py-2.5">
+              <span class="text-sm">{{ src.label }}</span>
+              <span class="text-sm font-semibold">{{ src.total | money: currency() }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-empty-state icon="⌖" title="No sources yet" message="Add income sources to rank them." />
+      }
+    </div>
+  </div>
+
+  <!-- recent income -->
+  <div class="card card-pad">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-serif text-xl font-semibold">Recent income</h2>
+      <a routerLink="/app/income" class="text-sm text-[var(--accent)] hover:underline">View all →</a>
+    </div>
+    @if (recent().length) {
+      <ul class="divide-y divide-[var(--border-color)]">
+        @for (income of recent(); track income.id) {
+          <li class="flex items-center justify-between py-3">
+            <div class="min-w-0">
+              <p class="font-medium truncate">{{ income.title }}</p>
+              <p class="text-xs text-muted">
+                <span class="badge">{{ income.income_type | humanize }}</span>
+                · {{ income.payment_date | date: 'mediumDate' }}
+              </p>
+            </div>
+            <span class="font-semibold text-positive whitespace-nowrap">
+              {{ income.amount | money: income.currency }}
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <app-empty-state
+        icon="＄"
+        title="No income yet"
+        message="Start by adding your first income entry."
+      />
+    }
+  </div>
+} @else {
+  <app-empty-state icon="⚠" title="Couldn't load dashboard" message="Please try again shortly." />
+}

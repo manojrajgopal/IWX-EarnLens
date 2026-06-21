@@ -1,0 +1,99 @@
+<div class="landing">
+  <!-- header -->
+  <header class="glass-header sticky top-0 z-30">
+    <div class="app-container flex items-center justify-between h-16">
+      <a routerLink="/" class="flex items-center gap-2">
+        <span class="text-2xl text-[var(--accent)]">◆</span>
+        <span class="font-serif text-2xl font-bold">EarnLens</span>
+      </a>
+      <nav class="flex items-center gap-2">
+        <a routerLink="/login" class="btn btn-ghost">Sign in</a>
+        <a routerLink="/register" class="btn btn-primary">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <section class="app-container text-center pt-20 pb-16 animate-in">
+    <span class="chip mb-6">Personal income intelligence</span>
+    <h1 class="font-serif text-5xl sm:text-6xl font-bold leading-[1.05] max-w-3xl mx-auto">
+      See every income stream with
+      <span class="text-accent">perfect clarity</span>.
+    </h1>
+    <p class="text-secondary text-lg mt-6 max-w-2xl mx-auto">
+      EarnLens brings all your earnings into one elegant workspace — track, categorize and
+      analyze your money with charts that actually make sense.
+    </p>
+    <div class="flex items-center justify-center gap-3 mt-9">
+      <a routerLink="/register" class="btn btn-primary px-7 py-3">Start for free</a>
+      <a routerLink="/login" class="btn btn-secondary px-7 py-3">I have an account</a>
+    </div>
+
+    <!-- preview -->
+    <div class="preview card mt-16 mx-auto max-w-4xl">
+      <div class="preview-bar">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 p-6">
+        @for (s of ['Total income', 'This month', 'Recurring']; track s) {
+          <div class="preview-stat">
+            <p class="field-label !mb-1">{{ s }}</p>
+            <p class="text-2xl font-bold">$ ••••</p>
+          </div>
+        }
+      </div>
+      <div class="preview-chart">
+        <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="w-full h-40">
+          <polyline
+            points="0,130 80,110 160,120 240,80 320,90 400,50 480,60 600,20"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="3"
+          />
+          <polygon
+            points="0,130 80,110 160,120 240,80 320,90 400,50 480,60 600,20 600,160 0,160"
+            fill="var(--accent)"
+            opacity="0.12"
+          />
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- features -->
+  <section class="app-container py-20">
+    <div class="text-center mb-12">
+      <h2 class="font-serif text-4xl font-bold">Everything you need to track income</h2>
+      <p class="text-secondary mt-3">Built for freelancers, professionals and multi-stream earners.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      @for (f of features; track f.title) {
+        <div class="card card-pad feature">
+          <div class="feature-icon">{{ f.icon }}</div>
+          <h3 class="font-serif text-xl font-semibold mt-4 mb-2">{{ f.title }}</h3>
+          <p class="text-secondary text-sm leading-relaxed">{{ f.text }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- cta -->
+  <section class="app-container pb-24">
+    <div class="cta card">
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">
+        Ready to understand your income?
+      </h2>
+      <p class="text-white/80 mt-3 mb-7">Create your free account and see the full picture today.</p>
+      <a routerLink="/register" class="btn bg-white text-[var(--brand-700)] px-7 py-3 font-semibold">
+        Get started — it's free
+      </a>
+    </div>
+  </section>
+
+  <footer class="border-t border-[var(--border-color)] py-8">
+    <div class="app-container flex items-center justify-between text-sm text-muted">
+      <span>© {{ year }} IWX · EarnLens</span>
+      <span class="flex items-center gap-1">Made with focus.</span>
+    </div>
+  </footer>
+</div>

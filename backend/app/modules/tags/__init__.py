@@ -1,0 +1,1 @@
+"""Income tag feature module."""

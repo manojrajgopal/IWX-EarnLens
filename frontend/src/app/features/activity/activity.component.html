@@ -1,0 +1,48 @@
+<div class="mb-7">
+  <h1 class="font-serif text-3xl font-bold">Activity</h1>
+  <p class="text-secondary text-sm mt-1">A timeline of recent actions on your account.</p>
+</div>
+
+@if (loading()) {
+  <app-spinner height="260px" />
+} @else if (logs().length) {
+  <div class="card card-pad">
+    <ul class="timeline">
+      @for (log of logs(); track log.id) {
+        <li class="timeline-item">
+          <span class="timeline-dot">{{ icon(log.action) }}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm">
+              <span class="font-semibold">{{ log.action | humanize }}</span>
+              <span class="text-secondary"> · {{ log.entity | humanize }}</span>
+            </p>
+            @if (log.summary) {
+              <p class="text-xs text-muted truncate">{{ log.summary }}</p>
+            }
+          </div>
+          <span class="text-xs text-muted whitespace-nowrap">{{ log.created_at | timeAgo }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  @if (meta(); as m) {
+    @if (m.total_pages > 1) {
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-sm text-muted">Page {{ m.page }} of {{ m.total_pages }}</p>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" [disabled]="m.page <= 1" (click)="goToPage(m.page - 1)">
+            ← Prev
+          </button>
+          <button class="btn btn-secondary" [disabled]="m.page >= m.total_pages" (click)="goToPage(m.page + 1)">
+            Next →
+          </button>
+        </div>
+      </div>
+    }
+  }
+} @else {
+  <div class="card">
+    <app-empty-state icon="↻" title="No activity yet" message="Your actions will appear here." />
+  </div>
+}
