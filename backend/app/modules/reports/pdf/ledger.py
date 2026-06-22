@@ -9,7 +9,7 @@ from reportlab.platypus import Flowable, Paragraph, Table, TableStyle
 
 from .drawing import hex_color, to_color
 from .formatting import format_medium_date, format_money, humanize
-from .layout import SANS, SANS_BOLD, RenderContext
+from .layout import SANS, SANS_BOLD, SANS_OBLIQUE, RenderContext
 
 
 def _para(text: str, font: str, size: float, color, leading: float = None):
@@ -55,12 +55,12 @@ def build_ledger(rows: Sequence[dict], ctx: RenderContext, limit: int) -> List[F
     total_currency = ctx.currency
     data.append([
         "", _para("TOTAL (shown)", SANS_BOLD, 8, ink_faint), "", "", "", "",
-        _para(format_money(shown_total, total_currency), SANS_BOLD, 9.5,
+        _para(format_money(shown_total, total_currency), SANS_BOLD, 8.5,
               to_color(pal.accent)),
     ])
 
-    title_w = ctx.content_width - (22 + 54 + 58 + 58 + 60 + 66)
-    col_widths = [22, title_w, 54, 58, 58, 60, 66]
+    title_w = ctx.content_width - (28 + 50 + 62 + 56 + 64 + 84)
+    col_widths = [28, title_w, 50, 62, 56, 64, 84]
 
     table = Table(data, colWidths=col_widths, repeatRows=1)
     last = len(data) - 1
@@ -94,5 +94,5 @@ def build_ledger(rows: Sequence[dict], ctx: RenderContext, limit: int) -> List[F
         note = (f"+ {hidden} more entries not shown "
                 f"(raise the ledger limit to include them).")
         flowables.append(
-            _para(note, "Helvetica-Oblique", 8.5, ink_faint))
+            _para(note, SANS_OBLIQUE, 8.5, ink_faint))
     return flowables

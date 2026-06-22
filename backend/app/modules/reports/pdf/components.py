@@ -1,7 +1,7 @@
 """Reusable cinematic primitives — KPI cards, section headings, share bars."""
 from __future__ import annotations
 
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 from reportlab.lib.colors import Color
 from reportlab.platypus import Flowable
@@ -9,7 +9,7 @@ from reportlab.platypus import Flowable
 from .drawing import (draw_text, fill_rounded_rect, gradient_rounded_rect,
                       hex_color, lighten, stroke_rounded_rect, to_color,
                       truncate)
-from .layout import SANS, SANS_BOLD, SERIF_BOLD, RenderContext
+from .layout import SANS, SANS_BOLD, SERIF, SERIF_BOLD, RenderContext
 from .theme import Palette
 
 
@@ -69,7 +69,7 @@ class SectionHeading(Flowable):
 class KpiRow(Flowable):
     """A responsive row of headline KPI cards."""
 
-    HEIGHT = 96.0
+    HEIGHT = 108.0
     GAP = 14.0
 
     def __init__(self, cards: Sequence[Tuple[str, str, str]],
@@ -132,47 +132,207 @@ class DistributionBars(Flowable):
     ROW_H = 40.0
 
     def __init__(self, rows: Sequence[Tuple[str, str, str, float, str]],
-                 ctx: RenderContext) -> None:
+                 ctx: RenderContext, height: Optional[float] = None,
+                 row_h: Optional[float] = None) -> None:
         super().__init__()
         self.rows = list(rows)
         self.ctx = ctx
+        self.fixed_height = height
+        self.fixed_row_h = row_h
 
     def wrap(self, avail_w: float, avail_h: float):
         self._w = avail_w if avail_w else self.ctx.content_width
-        return self._w, self.ROW_H * len(self.rows) + 4.0
+        if self.fixed_height:
+            return self._w, self.fixed_height
+        rh = self.fixed_row_h or self.ROW_H
+        return self._w, rh * len(self.rows) + 4.0
+
+    def draw(self) -> None:
+        total_rows = max(len(self.rows), 1)
+        if self.fixed_height:
+            row_h = self.fixed_height / total_rows
+        else:
+            row_h = self.fixed_row_h or self.ROW_H
+        for i, row in enumerate(self.rows):
+            cy = (total_rows - 1 - i) * row_h + row_h / 2.0
+            _draw_share_row(self.canv, self.ctx.palette, self._w, cy, row)
+
+
+def _draw_share_row(c, pal: Palette, w: float,
+                    cy: float, row: Tuple[str, str, str, float, str]) -> None:
+    """Draw a single ranked share row centred on ``cy``."""
+    label, amount_label, count_label, pct, color = row
+    label_w = w * 0.34
+    value_w = w * 0.17
+    # Rank dot.
+    c.saveState()
+    c.setFillColor(to_color(color))
+    c.circle(9, cy, 4.5, stroke=0, fill=1)
+    c.restoreState()
+    # Label lines.
+    draw_text(c, 20, cy + 1, truncate(c, label, SANS, 9.5, label_w - 14),
+              font=SANS, size=9.5, color=to_color(pal.ink))
+    draw_text(c, 20, cy - 10, count_label, font=SANS, size=7.5,
+              color=to_color(pal.ink_faint))
+    # Track + fill.
+    track_x = label_w + 8
+    track_w = w - label_w - value_w - 16
+    fill_rounded_rect(c, track_x, cy - 6, track_w, 12, 6, to_color(pal.panel_alt))
+    fw = max(track_w * (pct / 100.0), 3.0)
+    gradient_rounded_rect(c, track_x, cy - 6, fw, 12, 6,
+                          [lighten(color, 0.2), hex_color(color)])
+    # Value lines.
+    draw_text(c, w, cy + 1, amount_label, font=SANS_BOLD, size=9.5,
+              color=to_color(pal.ink), align="right")
+    draw_text(c, w, cy - 10, f"{pct:.1f}%", font=SANS_BOLD, size=7.8,
+              color=to_color(color), align="right")
+
+
+class BreakdownBlock(Flowable):
+    """A titled card pairing a donut with its ranked share bars, sized to a
+    fixed height so it fills the page cleanly with no trailing whitespace."""
+
+    def __init__(self, eyebrow: str, slices: Sequence[Tuple[str, float, str]],
+                 bars: Sequence[Tuple[str, str, str, float, str]],
+                 center_label: str, center_value: str, ctx: RenderContext,
+                 height: float) -> None:
+        super().__init__()
+        self.eyebrow = eyebrow
+        self.slices = list(slices)
+        self.bars = list(bars)
+        self.center_label = center_label
+        self.center_value = center_value
+        self.ctx = ctx
+        self.height = height
+
+    def wrap(self, avail_w: float, avail_h: float):
+        self._w = avail_w if avail_w else self.ctx.content_width
+        return self._w, self.height
+
+    def draw(self) -> None:
+        from .charts import DonutChart
+        c = self.canv
+        pal = self.ctx.palette
+        w, h = self._w, self.height
+
+        # Card surface.
+        fill_rounded_rect(c, 0, 0, w, h, 14, to_color(pal.paper))
+        stroke_rounded_rect(c, 0, 0, w, h, 14, to_color(pal.line), 1)
+        # Left accent rail.
+        gradient_rounded_rect(c, 0, 14, 5, h - 28, 2.5,
+                              [hex_color(pal.accent2), hex_color(pal.accent)],
+                              vertical=True)
+
+        pad = 20.0
+        head_h = 26.0
+        # Eyebrow title.
+        draw_text(c, pad, h - 22, self.eyebrow.upper(), font=SANS_BOLD, size=9,
+                  color=to_color(pal.accent), tracking=2.4)
+        c.saveState()
+        c.setStrokeColor(to_color(pal.line))
+        c.setLineWidth(0.8)
+        c.line(pad, h - head_h - 2, w - pad, h - head_h - 2)
+        c.restoreState()
+
+        body_top = h - head_h - 8
+        body_h = body_top - pad
+        # Donut on the left, vertically centred in the body.
+        donut_size = min(body_h, w * 0.36)
+        donut = DonutChart(self.slices, self.center_label, self.center_value,
+                           pal, size=donut_size)
+        dx = pad + 4
+        dy = pad + (body_h - donut_size) / 2.0
+        c.saveState()
+        c.translate(dx, dy)
+        donut.canv = c
+        donut.draw()
+        c.restoreState()
+
+        # Share bars on the right, distributed across the body height.
+        bars_x = dx + donut_size + 22
+        bars_w = w - bars_x - pad
+        rows = max(len(self.bars), 1)
+        row_h = body_h / rows
+        c.saveState()
+        c.translate(bars_x, pad)
+        for i, row in enumerate(self.bars):
+            cy = (rows - 1 - i) * row_h + row_h / 2.0
+            _draw_share_row(c, pal, bars_w, cy, row)
+        c.restoreState()
+
+
+class InsightPanel(Flowable):
+    """A fixed-height 'at a glance' card listing headline callouts so the
+    summary page fills end to end."""
+
+    def __init__(self, eyebrow: str,
+                 rows: Sequence[Tuple[str, str, str, float, str]],
+                 ctx: RenderContext, height: float) -> None:
+        super().__init__()
+        self.eyebrow = eyebrow
+        self.rows = list(rows)
+        self.ctx = ctx
+        self.height = height
+
+    def wrap(self, avail_w: float, avail_h: float):
+        self._w = avail_w if avail_w else self.ctx.content_width
+        return self._w, self.height
 
     def draw(self) -> None:
         c = self.canv
         pal = self.ctx.palette
-        w = self._w
-        label_w = w * 0.34
-        value_w = w * 0.17
-        total_rows = len(self.rows)
-        for i, (label, amount_label, count_label, pct, color) in enumerate(self.rows):
-            cy = (total_rows - 1 - i) * self.ROW_H + self.ROW_H / 2.0
-            # Rank dot.
+        w, h = self._w, self.height
+
+        fill_rounded_rect(c, 0, 0, w, h, 14, to_color(pal.paper))
+        stroke_rounded_rect(c, 0, 0, w, h, 14, to_color(pal.line), 1)
+        gradient_rounded_rect(c, 0, 14, 5, h - 28, 2.5,
+                              [hex_color(pal.accent2), hex_color(pal.accent)],
+                              vertical=True)
+
+        pad = 22.0
+        head_h = 26.0
+        draw_text(c, pad, h - 22, self.eyebrow.upper(), font=SANS_BOLD, size=9,
+                  color=to_color(pal.accent), tracking=2.4)
+        c.saveState()
+        c.setStrokeColor(to_color(pal.line))
+        c.setLineWidth(0.8)
+        c.line(pad, h - head_h - 2, w - pad, h - head_h - 2)
+        c.restoreState()
+
+        body_top = h - head_h - 6
+        body_h = body_top - pad
+        rows = max(len(self.rows), 1)
+        row_h = body_h / rows
+        for i, (label, value, sub, pct, color) in enumerate(self.rows):
+            cy = body_top - (i + 0.5) * row_h
+            # Marker.
             c.saveState()
             c.setFillColor(to_color(color))
-            c.circle(9, cy, 4.5, stroke=0, fill=1)
+            c.circle(pad + 4, cy + 4, 4.5, stroke=0, fill=1)
             c.restoreState()
-            # Label lines.
-            draw_text(c, 20, cy + 1, truncate(c, label, SANS, 9.5, label_w - 14),
-                      font=SANS, size=9.5, color=to_color(pal.ink))
-            draw_text(c, 20, cy - 10, count_label, font=SANS, size=7.5,
-                      color=to_color(pal.ink_faint))
-            # Track + fill.
-            track_x = label_w + 8
-            track_w = w - label_w - value_w - 16
-            fill_rounded_rect(c, track_x, cy - 6, track_w, 12, 6,
-                              to_color(pal.panel_alt))
-            fw = max(track_w * (pct / 100.0), 3.0)
-            gradient_rounded_rect(c, track_x, cy - 6, fw, 12, 6,
-                                  [lighten(color, 0.2), hex_color(color)])
-            # Value lines.
-            draw_text(c, w, cy + 1, amount_label, font=SANS_BOLD, size=9.5,
+            draw_text(c, pad + 18, cy + 5, label, font=SANS_BOLD, size=10,
+                      color=to_color(pal.ink))
+            if sub:
+                draw_text(c, pad + 18, cy - 7, sub, font=SANS, size=8,
+                          color=to_color(pal.ink_faint))
+            # Value, right aligned.
+            draw_text(c, w - pad, cy + 5, value, font=SERIF_BOLD, size=13,
                       color=to_color(pal.ink), align="right")
-            draw_text(c, w, cy - 10, f"{pct:.1f}%", font=SANS_BOLD, size=7.8,
-                      color=to_color(color), align="right")
+            # Thin share bar beneath the value.
+            track_w = w * 0.32
+            track_x = w - pad - track_w
+            fill_rounded_rect(c, track_x, cy - 11, track_w, 5, 2.5,
+                              to_color(pal.panel_alt))
+            fw = max(track_w * (max(pct, 0.0) / 100.0), 2.0)
+            gradient_rounded_rect(c, track_x, cy - 11, fw, 5, 2.5,
+                                  [lighten(color, 0.2), hex_color(color)])
+            if i < rows - 1:
+                c.saveState()
+                c.setStrokeColor(to_color(pal.line))
+                c.setLineWidth(0.5)
+                c.setDash(1, 2)
+                c.line(pad + 18, cy - row_h / 2.0, w - pad, cy - row_h / 2.0)
+                c.restoreState()
 
 
 def _rgb(value: str):

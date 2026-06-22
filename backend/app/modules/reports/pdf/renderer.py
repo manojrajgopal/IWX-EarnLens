@@ -6,14 +6,15 @@ from typing import Any, List, Sequence
 
 from reportlab.pdfgen import canvas as _canvas
 from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak, PageTemplate,
-                                Spacer, Table, TableStyle)
+                                Spacer)
 
-from .charts import BarChart, DonutChart
+from .charts import BarChart
 from .chrome import (draw_content_background, draw_content_footer, draw_cover_background,
                      draw_cover_footer, draw_header)
-from .components import DistributionBars, KpiRow, SectionHeading
+from .components import (BreakdownBlock, DistributionBars, InsightPanel, KpiRow,
+                         SectionHeading)
 from .cover import draw_cover
-from .formatting import (format_int, format_money, format_range_label)
+from .formatting import (format_int, format_money, format_range_label, humanize)
 from .layout import (MARGIN_BOTTOM, MARGIN_TOP, MARGIN_X, RenderContext,
                      page_size)
 from .ledger import build_ledger
@@ -100,25 +101,24 @@ def _build_meta(report: Any, options: ReportExportRequest, ctx: RenderContext) -
 
 # ── Sections ─────────────────────────────────────────────────────────────────
 
+def _content_height(ctx: RenderContext) -> float:
+    """Usable vertical space inside the content frame."""
+    return ctx.page_height - MARGIN_TOP - MARGIN_BOTTOM
+
+
 def _build_sections(report: Any, options: ReportExportRequest,
                     ctx: RenderContext, meta: dict) -> List[List[Any]]:
     sec = options.sections
     out: List[List[Any]] = []
     idx = 1
 
-    if sec.summary:
-        out.append(_summary_section(idx, report, ctx, meta))
+    if sec.summary or sec.trend:
+        out.append(_overview_section(idx, report, ctx, meta,
+                                     sec.summary, sec.trend))
         idx += 1
-    if sec.categories:
-        out.append(_breakdown_section(idx, "Distribution", "Category breakdown",
-                                      meta["range_label"], report.by_category, ctx))
-        idx += 1
-    if sec.types:
-        out.append(_breakdown_section(idx, "Composition", "Type composition",
-                                      meta["range_label"], report.by_type, ctx))
-        idx += 1
-    if sec.trend:
-        out.append(_trend_section(idx, report, ctx, meta))
+    if sec.categories or sec.types:
+        out.append(_distribution_section(idx, report, ctx, meta,
+                                         sec.categories, sec.types))
         idx += 1
     if sec.ledger:
         out.append(_ledger_section(idx, report, options, ctx, meta))
@@ -126,35 +126,107 @@ def _build_sections(report: Any, options: ReportExportRequest,
     return out
 
 
-def _summary_section(idx: int, report: Any, ctx: RenderContext,
-                     meta: dict) -> List[Any]:
+def _overview_section(idx: int, report: Any, ctx: RenderContext, meta: dict,
+                      want_summary: bool, want_trend: bool) -> List[Any]:
+    """Headline KPIs paired with the momentum chart — one full page."""
     t = report.totals
     cur = ctx.currency
-    cards = [
-        ("Total", format_money(t.total, cur), f"{format_int(t.count)} entries"),
-        ("Entries", format_int(t.count), "logged"),
-        ("Average", format_money(t.average, cur), "per entry"),
-        ("Peak", format_money(t.maximum, cur), "largest single"),
-    ]
-    floor_ceiling = [
-        ("Lowest entry", format_money(t.minimum, cur), "floor"),
-        ("Highest entry", format_money(t.maximum, cur), "ceiling"),
-    ]
-    return [
+    avail = _content_height(ctx)
+    heading_h = SectionHeading.HEIGHT + 12.0
+    body_h = avail - heading_h
+
+    flow: List[Any] = [
         SectionHeading(f"{idx:02d}", "Executive summary", "Headline metrics",
                        meta["range_label"], ctx),
-        KpiRow(cards, ctx),
-        Spacer(1, 6),
-        KpiRow(floor_ceiling, ctx),
     ]
 
+    used = 0.0
+    if want_summary:
+        cards = [
+            ("Total", format_money(t.total, cur), f"{format_int(t.count)} entries"),
+            ("Entries", format_int(t.count), "logged"),
+            ("Average", format_money(t.average, cur), "per entry"),
+            ("Peak", format_money(t.maximum, cur), "largest single"),
+        ]
+        floor_ceiling = [
+            ("Lowest entry", format_money(t.minimum, cur), "floor"),
+            ("Median band", format_money((t.minimum + t.maximum) / 2.0, cur),
+             "mid-point"),
+            ("Highest entry", format_money(t.maximum, cur), "ceiling"),
+        ]
+        row_h = KpiRow.HEIGHT + 14.0
+        flow += [KpiRow(cards, ctx), Spacer(1, 4), KpiRow(floor_ceiling, ctx)]
+        used += row_h * 2 + 4
 
-def _prepare_distribution(items: Sequence[Any], ctx: RenderContext):
+    gap = 14.0
+    remaining = body_h - used - (gap if used else 0)
+
+    if want_trend:
+        points = [(p.label, p.total) for p in report.trend]
+        chart_h = max(remaining, 200.0)
+        if used:
+            flow.append(Spacer(1, gap))
+        flow.append(BarChart(points, ctx.currency, ctx.palette,
+                             ctx.palette.series, ctx.content_width,
+                             height=chart_h))
+    elif want_summary:
+        rows = _insight_rows(report, ctx)
+        if rows:
+            flow.append(Spacer(1, gap))
+            flow.append(InsightPanel("At a glance", rows, ctx,
+                                     max(remaining, 160.0)))
+    return flow
+
+
+def _insight_rows(report: Any, ctx: RenderContext):
+    """Build callout rows for the 'at a glance' panel."""
+    cur = ctx.currency
+    pal = ctx.palette
+    rows: List[tuple] = []
+
+    cats = sorted(getattr(report, "by_category", []) or [],
+                  key=lambda d: d.total, reverse=True)
+    if cats:
+        c0 = cats[0]
+        rows.append(("Top category", format_money(c0.total, cur),
+                     f"{c0.label} · {format_int(c0.count)} entries",
+                     c0.percentage, c0.color or series_color(pal, 0)))
+
+    types = sorted(getattr(report, "by_type", []) or [],
+                   key=lambda d: d.total, reverse=True)
+    if types:
+        y0 = types[0]
+        rows.append(("Leading type", format_money(y0.total, cur),
+                     f"{humanize(y0.label)} · {format_int(y0.count)} entries",
+                     y0.percentage, y0.color or series_color(pal, 2)))
+
+    trend = list(getattr(report, "trend", []) or [])
+    grand = report.totals.total or 1.0
+    active = [p for p in trend if p.total > 0]
+    if active:
+        peak = max(active, key=lambda p: p.total)
+        rows.append(("Peak period", format_money(peak.total, cur), peak.label,
+                     peak.total / grand * 100.0, series_color(pal, 1)))
+        if len(active) > 1:
+            quiet = min(active, key=lambda p: p.total)
+            rows.append(("Quietest active period", format_money(quiet.total, cur),
+                         quiet.label, quiet.total / grand * 100.0,
+                         series_color(pal, 3)))
+
+    t = report.totals
+    rows.append(("Average per entry", format_money(t.average, cur),
+                 f"across {format_int(t.count)} entries", 0.0,
+                 series_color(pal, 4)))
+    return rows[:6]
+
+
+def _prepare_distribution(items: Sequence[Any], ctx: RenderContext,
+                          max_slices: int = _MAX_SLICES):
     """Top-N slices + 'Other', with resolved colours."""
     ordered = sorted(items, key=lambda d: d.total, reverse=True)
     slices, bars = [], []
-    head = ordered[:_MAX_SLICES]
-    tail = ordered[_MAX_SLICES:]
+    head = ordered[:max_slices]
+    tail = ordered[max_slices:]
     for i, item in enumerate(head):
         color = item.color or series_color(ctx.palette, i)
         slices.append((item.label, item.total, color))
@@ -172,45 +244,43 @@ def _prepare_distribution(items: Sequence[Any], ctx: RenderContext):
     return slices, bars, total
 
 
-def _breakdown_section(idx: int, eyebrow: str, title: str, subtitle: str,
-                       items: Sequence[Any], ctx: RenderContext) -> List[Any]:
-    heading = SectionHeading(f"{idx:02d}", eyebrow, title, subtitle, ctx)
-    if not items:
-        from .ledger import _para
-        from .drawing import to_color
-        empty = _para("No data available for this section in the selected range.",
-                      "Helvetica-Oblique", 10, to_color(ctx.palette.ink_faint))
-        return [heading, Spacer(1, 8), empty]
+def _distribution_section(idx: int, report: Any, ctx: RenderContext, meta: dict,
+                          want_categories: bool, want_types: bool) -> List[Any]:
+    """Category and type breakdowns grouped onto a single, full page."""
+    heading = SectionHeading(f"{idx:02d}", "Distribution",
+                             "Where your income comes from",
+                             meta["range_label"], ctx)
 
-    slices, bars, total = _prepare_distribution(items, ctx)
-    donut = DonutChart(slices, "TOTAL", format_money(total, ctx.currency),
-                       ctx.palette, size=180)
-    bar_stack = DistributionBars(bars, ctx)
+    blocks: List[tuple] = []
+    if want_categories:
+        blocks.append(("Category breakdown", getattr(report, "by_category", [])))
+    if want_types:
+        blocks.append(("Type composition", getattr(report, "by_type", [])))
 
-    donut_w = 196.0
-    grid = Table([[donut, bar_stack]],
-                 colWidths=[donut_w, ctx.content_width - donut_w])
-    grid.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-    ]))
-    return [heading, Spacer(1, 6), grid]
+    avail = _content_height(ctx) - (SectionHeading.HEIGHT + 12.0)
+    gap = 14.0
+    n = max(len(blocks), 1)
+    block_h = (avail - gap * (n - 1)) / n
+    # Fewer slices when two blocks share the page so rows stay legible.
+    max_slices = 5 if n > 1 else _MAX_SLICES
 
-
-def _trend_section(idx: int, report: Any, ctx: RenderContext,
-                   meta: dict) -> List[Any]:
-    points = [(p.label, p.total) for p in report.trend]
-    chart = BarChart(points, ctx.currency, ctx.palette, ctx.palette.series,
-                     ctx.content_width, height=230)
-    return [
-        SectionHeading(f"{idx:02d}", "Momentum", "Income over time",
-                       meta["range_label"], ctx),
-        Spacer(1, 6),
-        chart,
-    ]
+    flow: List[Any] = [heading]
+    for i, (eyebrow, items) in enumerate(blocks):
+        if i > 0:
+            flow.append(Spacer(1, gap))
+        if not items:
+            from .ledger import _para
+            from .drawing import to_color
+            from .layout import SANS_OBLIQUE
+            flow.append(_para(
+                "No data available for this section in the selected range.",
+                SANS_OBLIQUE, 10, to_color(ctx.palette.ink_faint)))
+            continue
+        slices, bars, total = _prepare_distribution(items, ctx, max_slices)
+        flow.append(BreakdownBlock(eyebrow, slices, bars, "TOTAL",
+                                   format_money(total, ctx.currency),
+                                   ctx, block_h))
+    return flow
 
 
 def _ledger_section(idx: int, report: Any, options: ReportExportRequest,
@@ -219,7 +289,28 @@ def _ledger_section(idx: int, report: Any, options: ReportExportRequest,
     heading = SectionHeading(f"{idx:02d}", "Detailed ledger",
                              f"{format_int(len(rows))} entries",
                              meta["range_label"], ctx)
-    return [heading, Spacer(1, 6)] + build_ledger(rows, ctx, options.ledger_limit)
+    flow: List[Any] = [heading, Spacer(1, 6)]
+    flow += build_ledger(rows, ctx, options.ledger_limit)
+
+    # Closing recap band so the page reads as a finished statement.
+    limit = options.ledger_limit
+    if limit and limit > 0 and len(rows) > limit:
+        shown = rows[:limit]
+    else:
+        shown = rows
+    hidden = len(rows) - len(shown)
+    shown_total = sum(float(r.get("amount", 0) or 0) for r in shown)
+    avg = shown_total / len(shown) if shown else 0.0
+    cur = ctx.currency
+    recap = [
+        ("Shown", format_money(shown_total, cur),
+         f"{format_int(len(shown))} entries"),
+        ("Average", format_money(avg, cur), "per shown entry"),
+        ("Entries", format_int(len(rows)), "in range"),
+        ("Hidden", format_int(hidden), "not shown" if hidden else "all shown"),
+    ]
+    flow += [Spacer(1, 16), KpiRow(recap, ctx)]
+    return flow
 
 
 def _row_dict(row: Any) -> dict:

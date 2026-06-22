@@ -72,10 +72,10 @@ def draw_cover(c, ctx: RenderContext, options: ReportExportRequest,
     # 6 · Headline total.
     draw_text(c, cx, h - t, "TOTAL INCOME CAPTURED", font=SANS, size=8.5,
               color=on_soft, align="center", tracking=3.0)
-    t += 22
+    t += 32
     draw_text(c, cx, h - t, meta["total_label"], font=SERIF_BOLD, size=30,
               color=on, align="center")
-    t += 24
+    t += 26
     draw_text(c, cx, h - t, f"{meta['count']} entries · {meta['range_label']}",
               font=SANS, size=9.5, color=on_soft, align="center")
     t += 30
