@@ -80,16 +80,17 @@ def draw_cover(c, ctx: RenderContext, options: ReportExportRequest,
               font=SANS, size=9.5, color=on_soft, align="center")
     t += 30
 
-    # 7 · Meta plate (Prepared for · Coverage · Issued).
+    # 7 · Meta plate (Prepared for · Coverage · Issued) — anchored toward the
+    #     bottom of the page so the cover reads balanced, not top-heavy.
     plate_h = 64.0
-    plate_y = h - t - plate_h
+    plate_y = 74.0  # clears the cover footer tagline at y≈36
     _meta_plate(c, ctx, MARGIN_X, plate_y, ctx.content_width, plate_h, options, meta)
-    t += plate_h + 16
 
-    # 8 · Optional cover note.
+    # 8 · Optional cover note, resting just above the meta plate.
     note = (options.cover_note or "").strip()
     if options.include_cover_note and note:
-        _cover_note(c, ctx, MARGIN_X, h - t, ctx.content_width, note)
+        _cover_note(c, ctx, MARGIN_X, plate_y + plate_h + 18,
+                    ctx.content_width, note)
 
 
 def _meta_plate(c, ctx: RenderContext, x, y, w, h, options, meta) -> None:
@@ -122,7 +123,7 @@ def _meta_plate(c, ctx: RenderContext, x, y, w, h, options, meta) -> None:
                   color=to_color(pal.on_cover), align="center")
 
 
-def _cover_note(c, ctx: RenderContext, x, top_y, w, note: str) -> None:
+def _cover_note(c, ctx: RenderContext, x, bottom_y, w, note: str) -> None:
     pal = ctx.palette
     on = hex_color(pal.on_cover)
     # Wrap the note to the available width.
@@ -141,7 +142,7 @@ def _cover_note(c, ctx: RenderContext, x, top_y, w, note: str) -> None:
         lines.append(current)
     lines = lines[:4]
     h = 30 + len(lines) * 13
-    y = top_y - h
+    y = bottom_y
     fill_rounded_rect(c, x, y, w, h, 10, Color(on.red, on.green, on.blue, alpha=0.05))
     draw_text(c, x + 14, y + h - 16, "A NOTE", font=SANS, size=7.5,
               color=to_color(pal.cover_glow), tracking=2.5)
