@@ -5,24 +5,60 @@
     <button type="button" class="btn btn-ghost" (click)="goBack()">←</button>
     <div>
       <h1 class="font-serif text-3xl font-bold">Dashboard</h1>
-      <p class="text-secondary text-sm mt-1">Your income at a glance.</p>
+      <p class="text-secondary text-sm mt-1">
+        Your complete income command center.
+        @if (summary(); as s) {
+          <span class="text-muted">· Updated {{ s.generated_at | date: 'medium' }}</span>
+        }
+      </p>
     </div>
   </div>
-  <a routerLink="/app/income/new" class="btn btn-primary">＋ Add income</a>
+  <div class="flex items-center gap-2 flex-wrap">
+    <button type="button" class="btn btn-ghost" (click)="refresh()" [disabled]="refreshing()">
+      {{ refreshing() ? '…' : '↻' }} Refresh
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="exportCsv()" [disabled]="exporting()">
+      {{ exporting() ? 'Exporting…' : '⬇ CSV' }}
+    </button>
+    <a routerLink="/app/reports" class="btn btn-secondary">▤ Reports</a>
+    <a routerLink="/app/analytics" class="btn btn-secondary">◴ Analytics</a>
+    <a routerLink="/app/income/new" class="btn btn-primary">＋ Add income</a>
+  </div>
 </div>
 
 @if (loading()) {
   <app-spinner height="320px" />
 } @else if (summary(); as s) {
-  <!-- stat cards -->
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <!-- quick navigation tiles -->
+  <section class="mb-7">
+    <h2 class="field-label mb-3">Quick access</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      @for (link of quickLinks; track link.path) {
+        <a
+          [routerLink]="link.path"
+          class="card card-hover card-pad !p-4 flex flex-col gap-2 text-center items-center transition"
+        >
+          <span
+            class="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
+            [style.background]="link.accent + '1a'"
+            [style.color]="link.accent"
+          >{{ link.icon }}</span>
+          <span class="text-sm font-semibold leading-tight">{{ link.label }}</span>
+          <span class="text-[11px] text-muted leading-tight">{{ link.description }}</span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- primary stat cards -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
     <app-stat-card
       label="Total income"
       [value]="s.totals.total"
       [currency]="currency()"
-      icon="₹"
+      [icon]="currencySymbol()"
       accent="#6366f1"
-      [hint]="s.totals.count + ' entries'"
+      [hint]="s.totals.count + ' entries recorded'"
     />
     <app-stat-card
       label="This month"
@@ -34,12 +70,12 @@
       hint="vs last period"
     />
     <app-stat-card
-      label="Recurring"
+      label="Recurring income"
       [value]="s.recurring.recurring_total"
       [currency]="currency()"
       icon="↻"
       accent="#f59e0b"
-      [hint]="s.recurring.recurring_count + ' recurring'"
+      [hint]="s.recurring.recurring_count + ' recurring entries'"
     />
     <app-stat-card
       label="Average entry"
@@ -51,27 +87,187 @@
     />
   </div>
 
+  <!-- period breakdown stat cards -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+    <app-stat-card
+      label="This week"
+      [value]="s.periods.this_week"
+      [currency]="currency()"
+      icon="◷"
+      accent="#0ea5e9"
+      hint="last 7 days"
+    />
+    <app-stat-card
+      label="This quarter"
+      [value]="s.periods.this_quarter"
+      [currency]="currency()"
+      icon="◵"
+      accent="#8b5cf6"
+      hint="current quarter"
+    />
+    <app-stat-card
+      label="This year"
+      [value]="s.periods.this_year"
+      [currency]="currency()"
+      icon="◶"
+      accent="#14b8a6"
+      hint="year to date"
+    />
+    <app-stat-card
+      label="One-time income"
+      [value]="s.recurring.one_time_total"
+      [currency]="currency()"
+      icon="✦"
+      accent="#f43f5e"
+      [hint]="s.recurring.one_time_count + ' one-time entries'"
+    />
+  </div>
+
+  <!-- secondary key metrics -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <app-stat-card
+      label="Highest entry"
+      [value]="s.totals.maximum"
+      [currency]="currency()"
+      icon="▲"
+      accent="#16a34a"
+      hint="largest single income"
+    />
+    <app-stat-card
+      label="Lowest entry"
+      [value]="s.totals.minimum"
+      [currency]="currency()"
+      icon="▼"
+      accent="#ef4444"
+      hint="smallest single income"
+    />
+    <app-stat-card
+      label="Total entries"
+      [value]="s.totals.count"
+      icon="#"
+      accent="#3b82f6"
+      [isMoney]="false"
+      hint="income records"
+    />
+    <app-stat-card
+      label="Recurring share"
+      [value]="recurringShare() + '%'"
+      icon="◑"
+      accent="#eab308"
+      [isMoney]="false"
+      hint="of total income"
+    />
+  </div>
+
   <!-- chart -->
   <div class="card card-pad mb-6">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <h2 class="font-serif text-xl font-semibold">Income trend</h2>
       <a routerLink="/app/analytics" class="text-sm text-[var(--accent)] hover:underline">
         Open analytics →
       </a>
     </div>
-    <app-chart
-      [labels]="chartLabels()"
-      [series]="chartSeries()"
-      style="area"
-      [currency]="currency()"
-    />
+    @if (chartLabels().length) {
+      <app-chart
+        [labels]="chartLabels()"
+        [series]="chartSeries()"
+        style="area"
+        [currency]="currency()"
+      />
+    } @else {
+      <app-empty-state icon="◴" title="No trend yet" message="Add income to see your trend over time." />
+    }
+  </div>
+
+  <!-- growth + recurring split -->
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <!-- growth -->
+    <div class="card card-pad">
+      <h2 class="font-serif text-xl font-semibold mb-4">Growth</h2>
+      <div class="flex items-end gap-3 mb-4">
+        <span class="text-3xl font-bold">{{ s.growth.current | money: currency() }}</span>
+        <span
+          class="text-sm font-semibold mb-1"
+          [class.text-positive]="s.growth.change_percent > 0"
+          [class.text-negative]="s.growth.change_percent < 0"
+        >
+          @if (s.growth.change_percent !== 0) {
+            {{ s.growth.change_percent > 0 ? '▲' : '▼' }} {{ s.growth.change_percent }}%
+          } @else {
+            — 0%
+          }
+        </span>
+      </div>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="field-label">Current period</p>
+          <p class="font-semibold">{{ s.growth.current | money: currency() }}</p>
+        </div>
+        <div>
+          <p class="field-label">Previous period</p>
+          <p class="font-semibold">{{ s.growth.previous | money: currency() }}</p>
+        </div>
+        <div>
+          <p class="field-label">Change</p>
+          <p
+            class="font-semibold"
+            [class.text-positive]="s.growth.change > 0"
+            [class.text-negative]="s.growth.change < 0"
+          >{{ s.growth.change | money: currency() }}</p>
+        </div>
+        <div>
+          <p class="field-label">Change %</p>
+          <p
+            class="font-semibold"
+            [class.text-positive]="s.growth.change_percent > 0"
+            [class.text-negative]="s.growth.change_percent < 0"
+          >{{ s.growth.change_percent }}%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- recurring vs one-time -->
+    <div class="card card-pad">
+      <h2 class="font-serif text-xl font-semibold mb-4">Recurring vs one-time</h2>
+      <div class="flex items-center justify-between text-sm mb-1">
+        <span class="flex items-center gap-2">
+          <span class="dot" style="background:#f59e0b"></span> Recurring
+        </span>
+        <span class="font-semibold">{{ s.recurring.recurring_total | money: currency() }}</span>
+      </div>
+      <div class="bar-track mb-4">
+        <div class="bar-fill" [style.width.%]="recurringShare()" style="background:#f59e0b"></div>
+      </div>
+      <div class="flex items-center justify-between text-sm mb-1">
+        <span class="flex items-center gap-2">
+          <span class="dot" style="background:#6366f1"></span> One-time
+        </span>
+        <span class="font-semibold">{{ s.recurring.one_time_total | money: currency() }}</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" [style.width.%]="100 - recurringShare()" style="background:#6366f1"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-5 text-sm">
+        <div>
+          <p class="field-label">Recurring entries</p>
+          <p class="font-semibold">{{ s.recurring.recurring_count }}</p>
+        </div>
+        <div>
+          <p class="field-label">One-time entries</p>
+          <p class="font-semibold">{{ s.recurring.one_time_count }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- breakdowns -->
   <div class="grid lg:grid-cols-2 gap-6 mb-6">
     <!-- by category -->
     <div class="card card-pad">
-      <h2 class="font-serif text-xl font-semibold mb-4">By category</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-serif text-xl font-semibold">By category</h2>
+        <a routerLink="/app/categories" class="text-sm text-[var(--accent)] hover:underline">Manage →</a>
+      </div>
       @if (s.by_category.length) {
         <div class="space-y-3">
           @for (item of s.by_category; track item.key) {
@@ -80,6 +276,7 @@
                 <span class="flex items-center gap-2">
                   <span class="dot" [style.background]="item.color || '#6366f1'"></span>
                   {{ item.label }}
+                  <span class="text-muted text-xs">· {{ item.count }}</span>
                 </span>
                 <span class="font-semibold">{{ item.total | money: currency() }}</span>
               </div>
@@ -98,14 +295,86 @@
       }
     </div>
 
+    <!-- by source -->
+    <div class="card card-pad">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-serif text-xl font-semibold">By source</h2>
+        <a routerLink="/app/sources" class="text-sm text-[var(--accent)] hover:underline">Manage →</a>
+      </div>
+      @if (s.by_source.length) {
+        <div class="space-y-3">
+          @for (item of s.by_source; track item.key) {
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="flex items-center gap-2">
+                  <span class="dot" [style.background]="item.color || '#10b981'"></span>
+                  {{ item.label }}
+                  <span class="text-muted text-xs">· {{ item.count }}</span>
+                </span>
+                <span class="font-semibold">{{ item.total | money: currency() }}</span>
+              </div>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.width.%]="item.percentage"
+                  [style.background]="item.color || '#10b981'"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <app-empty-state icon="⌖" title="No sources yet" message="Add income sources to see a breakdown." />
+      }
+    </div>
+  </div>
+
+  <!-- by type + top sources -->
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <!-- by type -->
+    <div class="card card-pad">
+      <h2 class="font-serif text-xl font-semibold mb-4">By income type</h2>
+      @if (s.by_type.length) {
+        <div class="space-y-3">
+          @for (item of s.by_type; track item.key) {
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="flex items-center gap-2">
+                  <span class="dot" [style.background]="item.color || '#8b5cf6'"></span>
+                  {{ item.label | humanize }}
+                  <span class="text-muted text-xs">· {{ item.count }}</span>
+                </span>
+                <span class="font-semibold">{{ item.total | money: currency() }}</span>
+              </div>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.width.%]="item.percentage"
+                  [style.background]="item.color || '#8b5cf6'"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <app-empty-state icon="✦" title="No types yet" message="Add income to see a type breakdown." />
+      }
+    </div>
+
     <!-- top sources -->
     <div class="card card-pad">
-      <h2 class="font-serif text-xl font-semibold mb-4">Top sources</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-serif text-xl font-semibold">Top sources</h2>
+        <a routerLink="/app/sources" class="text-sm text-[var(--accent)] hover:underline">View all →</a>
+      </div>
       @if (s.top_sources.length) {
         <ul class="divide-y divide-[var(--border-color)]">
           @for (src of s.top_sources; track src.label) {
             <li class="flex items-center justify-between py-2.5">
-              <span class="text-sm">{{ src.label }}</span>
+              <span class="text-sm flex items-center gap-2">
+                {{ src.label }}
+                <span class="text-muted text-xs">· {{ src.count }} entries</span>
+              </span>
               <span class="text-sm font-semibold">{{ src.total | money: currency() }}</span>
             </li>
           }
@@ -125,14 +394,17 @@
     @if (recent().length) {
       <ul class="divide-y divide-[var(--border-color)]">
         @for (income of recent(); track income.id) {
-          <li class="flex items-center justify-between py-3">
-            <div class="min-w-0">
-              <p class="font-medium truncate">{{ income.title }}</p>
-              <p class="text-xs text-muted">
+          <li class="flex items-center justify-between gap-3 py-3">
+            <a [routerLink]="['/app/income', income.id]" class="min-w-0 flex-1 group">
+              <p class="font-medium truncate group-hover:text-[var(--accent)] transition">
+                {{ income.title }}
+              </p>
+              <p class="text-xs text-muted flex items-center gap-1.5 flex-wrap mt-0.5">
                 <span class="badge">{{ income.income_type | humanize }}</span>
+                <span class="badge">{{ income.status | humanize }}</span>
                 · {{ income.payment_date | date: 'mediumDate' }}
               </p>
-            </div>
+            </a>
             <span class="font-semibold text-positive whitespace-nowrap">
               {{ income.amount | money: income.currency }}
             </span>
@@ -144,10 +416,14 @@
         icon="₹"
         title="No income yet"
         message="Start by adding your first income entry."
-      />
+      >
+        <a routerLink="/app/income/new" class="btn btn-primary mt-3">＋ Add income</a>
+      </app-empty-state>
     }
   </div>
 } @else {
-  <app-empty-state icon="⚠" title="Couldn't load dashboard" message="Please try again shortly." />
+  <app-empty-state icon="⚠" title="Couldn't load dashboard" message="Please try again shortly.">
+    <button type="button" class="btn btn-primary mt-3" (click)="refresh()">↻ Retry</button>
+  </app-empty-state>
 }
 </div>

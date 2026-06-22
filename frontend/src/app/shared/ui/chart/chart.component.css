@@ -110,6 +110,7 @@
 }
 
 .chart__dot {
+  fill: #000;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
@@ -119,9 +120,17 @@
 }
 
 .chart__dot-active {
-  fill: var(--bg-card, #fff);
+  fill: #000;
   stroke: var(--accent);
   stroke-width: 2.5;
+}
+
+:host-context(html.dark) .chart__dot {
+  fill: #fff;
+}
+
+:host-context(html.dark) .chart__dot-active {
+  fill: #fff;
 }
 
 /* ---- bars ---- */
