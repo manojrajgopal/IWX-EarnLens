@@ -1,11 +1,12 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { timeout, TimeoutError } from 'rxjs';
 import { ReportService } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { IncomeReport } from '../../core/models/report.model';
+import { GraphSeries } from '../../core/models/analytics.model';
 import { IncomeFilters } from '../../core/models/income.model';
 import { ChartComponent } from '../../shared/ui/chart/chart.component';
 import { SpinnerComponent } from '../../shared/ui/spinner/spinner.component';
@@ -33,7 +34,7 @@ const REPORT_TIMEOUT_MS = 30_000;
   ],
   templateUrl: './reports.component.html',
 })
-export class ReportsComponent {
+export class ReportsComponent implements OnInit {
   private readonly api = inject(ReportService);
   private readonly auth = inject(AuthService);
   private readonly location = inject(Location);
@@ -48,11 +49,30 @@ export class ReportsComponent {
   readonly dialogOpen = signal(false);
   readonly dialogInitial = signal<Partial<ReportOptions>>({});
 
+  /**
+   * Memoized chart inputs. These MUST be stable references — binding fresh
+   * arrays on every change-detection pass makes the chart's reactive effect
+   * churn microtasks and freezes the zone.
+   */
+  readonly trendLabels = computed(() => this.report()?.trend.map((p) => p.label) ?? []);
+  readonly trendSeries = computed<GraphSeries[]>(() => {
+    const r = this.report();
+    if (!r) {
+      return [];
+    }
+    return [{ key: 'total', label: 'Income', points: r.trend }];
+  });
+
   private filters(): IncomeFilters {
     return {
       start_date: this.startDate() || null,
       end_date: this.endDate() || null,
     };
+  }
+
+  /** Load a default (all-time) report on entry so the graph shows immediately. */
+  ngOnInit(): void {
+    this.generate();
   }
 
   generate(): void {
@@ -138,14 +158,6 @@ export class ReportsComponent {
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
-  }
-
-  trendLabels(report: IncomeReport): string[] {
-    return report.trend.map((p) => p.label);
-  }
-
-  trendSeries(report: IncomeReport) {
-    return [{ key: 'total', label: 'Income', points: report.trend }];
   }
 
   goBack(): void {
