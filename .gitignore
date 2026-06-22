@@ -1,3 +1,30 @@
+.vscode
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+
 # Compiled output
 /dist
 /tmp
@@ -24,3 +51,5 @@ src/environments/environment.local.ts
 # Misc
 .DS_Store
 Thumbs.db
+node_modules
+.angular
