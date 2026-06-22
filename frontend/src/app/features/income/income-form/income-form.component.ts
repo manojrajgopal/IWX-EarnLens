@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -58,6 +58,7 @@ export class IncomeFormComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly visibility = inject(FieldVisibilityService);
   private readonly dialog = inject(DialogService);
   private readonly draft = inject(IncomeFormDraftService);
@@ -270,6 +271,10 @@ export class IncomeFormComponent implements OnInit {
   cancel(): void {
     this.saved = true;
     this.draft.clear();
-    this.router.navigate(['/app/income']);
+    this.location.back();
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }
