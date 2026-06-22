@@ -10,7 +10,7 @@ import { ReportOptions } from '../models/report-options.model';
 export function defaultReportOptions(overrides: Partial<ReportOptions> = {}): ReportOptions {
   return {
     title: 'Income Intelligence Report',
-    subtitle: 'A cinematic ledger of your earnings',
+    subtitle: 'A clear overview of your earnings',
     preparedFor: '',
     startDate: null,
     endDate: null,

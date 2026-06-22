@@ -2,15 +2,27 @@
   <div class="rod__overlay" (click)="dismiss()">
     <div class="rod__panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
       <!-- header -->
-      <header class="rod__head" [style.--rod-accent]="activeTheme().palette.accent">
-        <div class="rod__head-glow"></div>
+      <header class="rod__head"
+        [style.--rod-from]="activeTheme().palette.coverFrom"
+        [style.--rod-mid]="activeTheme().palette.coverMid"
+        [style.--rod-to]="activeTheme().palette.coverTo"
+        [style.--rod-glow]="activeTheme().palette.coverGlow"
+        [style.--rod-on]="activeTheme().palette.onCover"
+        [style.--rod-accent]="activeTheme().palette.accent">
+        <span class="rod__head-glow"></span>
+        <span class="rod__head-glow rod__head-glow--two"></span>
         <div class="rod__head-row">
-          <div>
-            <p class="rod__eyebrow">Cinematic export</p>
+          <div class="rod__head-text">
+            <p class="rod__eyebrow">Export report</p>
             <h2 class="rod__title">Compose your PDF</h2>
-            <p class="rod__sub">Tune every detail — the report renders to match.</p>
+            <p class="rod__sub">Fine-tune the details — the report renders to match.</p>
           </div>
           <button type="button" class="rod__close" (click)="dismiss()" aria-label="Close">✕</button>
+        </div>
+        <div class="rod__head-meta">
+          <span class="rod__chip">{{ activeTheme().name }}</span>
+          <span class="rod__chip">{{ form().pageSize }} · {{ form().density }}</span>
+          <span class="rod__chip">{{ enabledCount() }} sections</span>
         </div>
       </header>
 
@@ -62,7 +74,7 @@
 
         <!-- theme -->
         <section class="rod__group">
-          <p class="rod__legend"><span class="rod__legend-dot"></span> Cinematic theme</p>
+          <p class="rod__legend"><span class="rod__legend-dot"></span> Theme</p>
           <div class="rod__themes">
             @for (theme of themes; track theme.id) {
               <button type="button" class="rod__theme" [class.is-active]="form().themeId === theme.id"

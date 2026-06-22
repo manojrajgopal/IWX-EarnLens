@@ -96,16 +96,47 @@ export class ReportsComponent implements OnInit {
       });
   }
 
-  /** Open the cinematic options console, pre-filled with context. */
+  /** Open the export console, pre-filled with auto-generated context. */
   openExport(): void {
     const user = this.auth.currentUser();
+    const today = new Date();
+    const start = this.startDate() || `${today.getFullYear()}-01-01`;
+    const end = this.endDate() || this.toIsoDate(today);
     this.dialogInitial.set({
+      title: 'Income Intelligence Report',
+      subtitle: this.buildSubtitle(start, end),
       preparedFor: user?.full_name || user?.username || '',
-      startDate: this.startDate() || null,
-      endDate: this.endDate() || null,
-      fileName: `earnlens-report-${new Date().toISOString().slice(0, 10)}`,
+      startDate: start,
+      endDate: end,
+      fileName: `earnlens-report-${this.toIsoDate(today)}`,
     });
     this.dialogOpen.set(true);
+  }
+
+  /** Format a Date as an ISO `yyyy-mm-dd` string (local). */
+  private toIsoDate(date: Date): string {
+    const offset = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+  }
+
+  /** Build a human-friendly subtitle from the selected coverage range. */
+  private buildSubtitle(start: string | null, end: string | null): string {
+    const fmt = (value: string): string =>
+      new Date(value).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    if (start && end) {
+      return `Earnings overview · ${fmt(start)} – ${fmt(end)}`;
+    }
+    if (start) {
+      return `Earnings from ${fmt(start)}`;
+    }
+    if (end) {
+      return `Earnings up to ${fmt(end)}`;
+    }
+    return 'A clear overview of your earnings';
   }
 
   closeDialog(): void {
@@ -127,7 +158,7 @@ export class ReportsComponent implements OnInit {
             this.previewBlob(blob);
           } else {
             this.downloadBlob(blob, fileName);
-            this.toast.success('Cinematic PDF generated.');
+            this.toast.success('Report PDF generated.');
           }
         },
         error: (err) => {
