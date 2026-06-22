@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 import { IncomeReport } from '../../core/models/report.model';
 import { IncomeFilters } from '../../core/models/income.model';
 import { ChartComponent } from '../../shared/ui/chart/chart.component';
@@ -10,6 +11,8 @@ import { SpinnerComponent } from '../../shared/ui/spinner/spinner.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state.component';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
+import { ReportOptionsDialogComponent, ReportDialogResult } from './dialog';
+import { PdfReportFacade, ReportOptions } from './pdf';
 
 @Component({
   selector: 'app-reports',
@@ -22,19 +25,25 @@ import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
     EmptyStateComponent,
     MoneyPipe,
     HumanizePipe,
+    ReportOptionsDialogComponent,
   ],
   templateUrl: './reports.component.html',
 })
 export class ReportsComponent {
   private readonly api = inject(ReportService);
+  private readonly pdf = inject(PdfReportFacade);
+  private readonly auth = inject(AuthService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
-  readonly downloading = signal(false);
+  readonly exporting = signal(false);
   readonly report = signal<IncomeReport | null>(null);
   readonly startDate = signal('');
   readonly endDate = signal('');
+
+  readonly dialogOpen = signal(false);
+  readonly dialogInitial = signal<Partial<ReportOptions>>({});
 
   private filters(): IncomeFilters {
     return {
@@ -54,20 +63,49 @@ export class ReportsComponent {
     });
   }
 
-  download(): void {
-    this.downloading.set(true);
-    this.api.exportCsv(this.filters()).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `earnlens-report-${new Date().toISOString().slice(0, 10)}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-        this.downloading.set(false);
-        this.toast.success('CSV downloaded.');
+  /** Open the cinematic options console, pre-filled with context. */
+  openExport(): void {
+    const user = this.auth.currentUser();
+    this.dialogInitial.set({
+      preparedFor: user?.full_name || user?.username || '',
+      startDate: this.startDate() || null,
+      endDate: this.endDate() || null,
+      fileName: `earnlens-report-${new Date().toISOString().slice(0, 10)}`,
+    });
+    this.dialogOpen.set(true);
+  }
+
+  closeDialog(): void {
+    this.dialogOpen.set(false);
+  }
+
+  /** Fetch data for the chosen range, then render the PDF. */
+  onDialogConfirm(result: ReportDialogResult): void {
+    this.dialogOpen.set(false);
+    this.exporting.set(true);
+    const filters: IncomeFilters = {
+      start_date: result.options.startDate || null,
+      end_date: result.options.endDate || null,
+    };
+    this.api.generate(filters).subscribe({
+      next: (report) => {
+        this.report.set(report);
+        try {
+          if (result.action === 'preview') {
+            this.pdf.preview(report, result.options);
+          } else {
+            this.pdf.download(report, result.options);
+            this.toast.success('Cinematic PDF generated.');
+          }
+        } catch {
+          this.toast.error('Could not render the PDF.');
+        }
+        this.exporting.set(false);
       },
-      error: () => this.downloading.set(false),
+      error: () => {
+        this.exporting.set(false);
+        this.toast.error('Could not load report data.');
+      },
     });
   }
 

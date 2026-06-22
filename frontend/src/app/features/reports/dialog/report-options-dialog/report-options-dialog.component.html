@@ -1,0 +1,166 @@
+@if (open()) {
+  <div class="rod__overlay" (click)="dismiss()">
+    <div class="rod__panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <!-- header -->
+      <header class="rod__head" [style.--rod-accent]="activeTheme().palette.accent">
+        <div class="rod__head-glow"></div>
+        <div class="rod__head-row">
+          <div>
+            <p class="rod__eyebrow">Cinematic export</p>
+            <h2 class="rod__title">Compose your PDF</h2>
+            <p class="rod__sub">Tune every detail — the report renders to match.</p>
+          </div>
+          <button type="button" class="rod__close" (click)="dismiss()" aria-label="Close">✕</button>
+        </div>
+      </header>
+
+      <!-- body -->
+      <div class="rod__body">
+        <!-- identity -->
+        <section class="rod__group">
+          <p class="rod__legend"><span class="rod__legend-dot"></span> Identity</p>
+          <div class="rod__grid">
+            <label class="rod__field rod__field--full">
+              <span class="rod__label">Report title</span>
+              <input class="rod__input" type="text" [ngModel]="form().title"
+                (ngModelChange)="patch({ title: $event })" placeholder="Income Intelligence Report" />
+            </label>
+            <label class="rod__field rod__field--full">
+              <span class="rod__label">Subtitle</span>
+              <input class="rod__input" type="text" [ngModel]="form().subtitle"
+                (ngModelChange)="patch({ subtitle: $event })" placeholder="A cinematic ledger of your earnings" />
+            </label>
+            <label class="rod__field">
+              <span class="rod__label">Prepared for</span>
+              <input class="rod__input" type="text" [ngModel]="form().preparedFor"
+                (ngModelChange)="patch({ preparedFor: $event })" placeholder="Your name" />
+            </label>
+            <label class="rod__field">
+              <span class="rod__label">File name</span>
+              <input class="rod__input" type="text" [ngModel]="form().fileName"
+                (ngModelChange)="patch({ fileName: $event })" placeholder="earnlens-report" />
+            </label>
+          </div>
+        </section>
+
+        <!-- coverage -->
+        <section class="rod__group">
+          <p class="rod__legend"><span class="rod__legend-dot"></span> Coverage</p>
+          <div class="rod__grid">
+            <label class="rod__field">
+              <span class="rod__label">From</span>
+              <input class="rod__input" type="date" [ngModel]="form().startDate"
+                (ngModelChange)="patch({ startDate: $event || null })" />
+            </label>
+            <label class="rod__field">
+              <span class="rod__label">To</span>
+              <input class="rod__input" type="date" [ngModel]="form().endDate"
+                (ngModelChange)="patch({ endDate: $event || null })" />
+            </label>
+          </div>
+        </section>
+
+        <!-- theme -->
+        <section class="rod__group">
+          <p class="rod__legend"><span class="rod__legend-dot"></span> Cinematic theme</p>
+          <div class="rod__themes">
+            @for (theme of themes; track theme.id) {
+              <button type="button" class="rod__theme" [class.is-active]="form().themeId === theme.id"
+                (click)="selectTheme(theme.id)">
+                <span class="rod__theme-preview"
+                  [style.background]="'linear-gradient(135deg,' + theme.palette.coverFrom + ',' + theme.palette.coverTo + ')'">
+                  <span class="rod__theme-glow" [style.background]="theme.palette.coverGlow"></span>
+                  @for (sw of swatches(theme); track $index) {
+                    <span class="rod__theme-swatch" [style.background]="sw"></span>
+                  }
+                </span>
+                <span class="rod__theme-name">{{ theme.name }}</span>
+                <span class="rod__theme-tag">{{ theme.tagline }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- sections -->
+        <section class="rod__group">
+          <p class="rod__legend">
+            <span class="rod__legend-dot"></span> Sections
+            <span class="rod__legend-count">{{ enabledCount() }} on</span>
+          </p>
+          <div class="rod__sections">
+            @for (sec of sectionCatalog; track sec.id) {
+              <button type="button" class="rod__section" [class.is-on]="isSectionOn(sec.id)"
+                [class.is-locked]="sec.locked" (click)="toggleSection(sec.id)">
+                <span class="rod__section-icon">{{ sec.icon }}</span>
+                <span class="rod__section-text">
+                  <span class="rod__section-name">{{ sec.label }}
+                    @if (sec.locked) { <span class="rod__pin">always</span> }
+                  </span>
+                  <span class="rod__section-desc">{{ sec.description }}</span>
+                </span>
+                <span class="rod__check">{{ isSectionOn(sec.id) ? '✓' : '' }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- format -->
+        <section class="rod__group">
+          <p class="rod__legend"><span class="rod__legend-dot"></span> Format</p>
+          <div class="rod__rows">
+            <div class="rod__row">
+              <span class="rod__row-label">Paper size</span>
+              <div class="rod__seg">
+                <button type="button" [class.is-active]="form().pageSize === 'A4'" (click)="setPageSize('A4')">A4</button>
+                <button type="button" [class.is-active]="form().pageSize === 'LETTER'" (click)="setPageSize('LETTER')">Letter</button>
+              </div>
+            </div>
+            <div class="rod__row">
+              <span class="rod__row-label">Ledger density</span>
+              <div class="rod__seg">
+                <button type="button" [class.is-active]="form().density === 'comfortable'" (click)="setDensity('comfortable')">Comfortable</button>
+                <button type="button" [class.is-active]="form().density === 'compact'" (click)="setDensity('compact')">Compact</button>
+              </div>
+            </div>
+            <div class="rod__row">
+              <span class="rod__row-label">Ledger rows <small>(0 = all)</small></span>
+              <input class="rod__input rod__input--mini" type="number" min="0" [ngModel]="form().ledgerLimit"
+                (ngModelChange)="onLedgerLimit($event)" />
+            </div>
+            <div class="rod__row">
+              <span class="rod__row-label">Embed IWX seal</span>
+              <button type="button" class="rod__switch" [class.is-on]="form().includeLogo" (click)="toggleLogo()">
+                <span class="rod__switch-dot"></span>
+              </button>
+            </div>
+            <div class="rod__row">
+              <span class="rod__row-label">Cover note</span>
+              <button type="button" class="rod__switch" [class.is-on]="form().includeCoverNote" (click)="toggleCoverNote()">
+                <span class="rod__switch-dot"></span>
+              </button>
+            </div>
+            @if (form().includeCoverNote) {
+              <label class="rod__field rod__field--full">
+                <span class="rod__label">Note printed on the cover</span>
+                <textarea class="rod__input rod__textarea" rows="2" [ngModel]="form().coverNote"
+                  (ngModelChange)="patch({ coverNote: $event })" placeholder="A short dedication or context…"></textarea>
+              </label>
+            }
+          </div>
+        </section>
+      </div>
+
+      <!-- footer -->
+      <footer class="rod__foot">
+        <button type="button" class="rod__btn rod__btn--ghost" (click)="dismiss()">Cancel</button>
+        <div class="rod__foot-actions">
+          <button type="button" class="rod__btn rod__btn--soft" (click)="emit('preview')">Preview</button>
+          <button type="button" class="rod__btn rod__btn--solid"
+            [style.--rod-accent]="activeTheme().palette.accent"
+            [style.--rod-accent2]="activeTheme().palette.accent2"
+            (click)="emit('download')">Generate PDF</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+}

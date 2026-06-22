@@ -24,8 +24,8 @@
       <button class="btn btn-primary flex-1" (click)="generate()" [disabled]="loading()">
         {{ loading() ? 'Generating…' : 'Generate' }}
       </button>
-      <button class="btn btn-secondary" (click)="download()" [disabled]="downloading()">
-        {{ downloading() ? '…' : '⭳ CSV' }}
+      <button class="btn btn-secondary" (click)="openExport()" [disabled]="exporting()">
+        {{ exporting() ? 'Rendering…' : '⬇ Export PDF' }}
       </button>
     </div>
   </div>
@@ -104,3 +104,10 @@
   </div>
 }
 </div>
+
+<app-report-options-dialog
+  [open]="dialogOpen()"
+  [initial]="dialogInitial()"
+  (confirm)="onDialogConfirm($event)"
+  (cancel)="closeDialog()"
+/>
