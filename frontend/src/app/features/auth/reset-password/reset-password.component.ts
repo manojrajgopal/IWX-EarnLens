@@ -27,15 +27,17 @@ import { passwordMatch, strongPassword } from '../shared/validators/auth.validat
       />
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="rp">
-        <div class="rp__row" style="--d: 0.1s">
-          <app-text-field
-            [control]="tokenCtrl"
-            label="Reset token"
-            icon="🔑"
-            placeholder="Paste your token here"
-            [errors]="{ required: 'Token is required.' }"
-          />
-        </div>
+        @if (!hasToken()) {
+          <div class="rp__row" style="--d: 0.1s">
+            <app-text-field
+              [control]="tokenCtrl"
+              label="Reset token"
+              icon="🔑"
+              placeholder="Paste your token here"
+              [errors]="{ required: 'Token is required.' }"
+            />
+          </div>
+        }
 
         <div class="rp__row" style="--d: 0.18s">
           <app-password-field
@@ -106,6 +108,9 @@ export class ResetPasswordComponent {
     },
     { validators: passwordMatch('new_password', 'confirm_new_password') },
   );
+
+  /** True when the token arrived via the email link, so we keep it hidden. */
+  readonly hasToken = signal(!!this.route.snapshot.queryParamMap.get('token'));
 
   get tokenCtrl(): FormControl { return this.form.controls.token; }
   get passwordCtrl(): FormControl { return this.form.controls.new_password; }

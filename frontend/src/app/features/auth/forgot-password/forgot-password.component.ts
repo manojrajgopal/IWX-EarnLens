@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -10,7 +9,7 @@ import { TextFieldComponent } from '../shared/text-field/text-field.component';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthHeadingComponent, AuthSwitchComponent, TextFieldComponent],
+  imports: [ReactiveFormsModule, AuthHeadingComponent, AuthSwitchComponent, TextFieldComponent],
   template: `
     <div class="animate-in">
       <div class="lg:hidden flex items-center gap-2 mb-8">
@@ -37,14 +36,6 @@ import { TextFieldComponent } from '../shared/text-field/text-field.component';
           <p class="fp__success-text">
             If an account exists for that email, a reset link is on its way.
           </p>
-          @if (devToken()) {
-            <p class="fp__dev-token">
-              Dev token:
-              <a class="fp__dev-link" [routerLink]="['/reset-password']" [queryParams]="{ token: devToken() }">
-                {{ devToken() }}
-              </a>
-            </p>
-          }
         </div>
       } @else {
         <form [formGroup]="form" (ngSubmit)="submit()" class="fp">
@@ -91,7 +82,6 @@ export class ForgotPasswordComponent {
 
   readonly loading = signal(false);
   readonly sent = signal(false);
-  readonly devToken = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -108,8 +98,7 @@ export class ForgotPasswordComponent {
     }
     this.loading.set(true);
     this.auth.forgotPassword(this.form.getRawValue().email).subscribe({
-      next: (res) => {
-        this.devToken.set(res.reset_token);
+      next: () => {
         this.sent.set(true);
         this.loading.set(false);
       },
