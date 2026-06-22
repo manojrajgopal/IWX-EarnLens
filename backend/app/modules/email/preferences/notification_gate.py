@@ -15,6 +15,7 @@ from app.modules.email.constants.email_events import (
     EVENT_PREFERENCE_KEYS,
     EmailEvent,
 )
+from app.modules.email.constants.preference_keys import ALWAYS_ON_CHANNELS
 from app.modules.preferences.services.preferences_service import PreferencesRepository
 
 
@@ -35,10 +36,16 @@ class NotificationGate:
     def _evaluate(prefs: Dict[str, Any], event: EmailEvent) -> bool:
         notifications: Dict[str, Any] = prefs.get("notifications") or {}
 
+        key = EVENT_PREFERENCE_KEYS[event]
+
+        # Mandatory channels are always sent, ignoring the master switch and
+        # any stored per-channel toggle (they are not user-configurable).
+        if key in ALWAYS_ON_CHANNELS:
+            return True
+
         # Master switch (default True so new users get emails).
         if not notifications.get("email", True):
             return False
 
         channels: Dict[str, Any] = notifications.get("channels") or {}
-        key = EVENT_PREFERENCE_KEYS[event]
         return bool(channels.get(key, True))

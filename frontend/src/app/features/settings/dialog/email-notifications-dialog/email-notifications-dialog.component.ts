@@ -53,8 +53,6 @@ export class EmailNotificationsDialogComponent {
   readonly confirm = output<EmailNotificationsResult>();
   readonly cancel = output<void>();
 
-  /** Master switch working copy. */
-  readonly master = signal(true);
   /** Per-channel working copy. */
   readonly channels = signal<Record<string, boolean>>({});
   /** Catalog fetched from the backend (label / group / locked). */
@@ -76,9 +74,12 @@ export class EmailNotificationsDialogComponent {
     return order.map((name) => ({ name, items: byGroup.get(name)! }));
   });
 
-  /** How many channels are currently armed (locked ones included). */
+  /** Only the editable (non-locked) channels — the income notifications. */
+  readonly editable = computed(() => this.catalog().filter((c) => !c.locked));
+
+  /** How many editable channels the user currently has armed. */
   readonly activeCount = computed(
-    () => Object.values(this.channels()).filter(Boolean).length,
+    () => this.editable().filter((c) => this.channels()[c.key]).length,
   );
 
   constructor() {
@@ -90,7 +91,6 @@ export class EmailNotificationsDialogComponent {
     effect(() => {
       const isOpen = this.open();
       if (isOpen && !wasOpen) {
-        this.master.set(this.emailEnabled());
         this.channels.set({ ...this.channelState() });
       }
       wasOpen = isOpen;
@@ -116,22 +116,14 @@ export class EmailNotificationsDialogComponent {
     });
   }
 
-  toggleMaster(): void {
-    this.master.update((v) => !v);
-  }
-
   toggleChannel(channel: EmailChannel): void {
     if (channel.locked) return;
     this.channels.update((c) => ({ ...c, [channel.key]: !c[channel.key] }));
   }
 
   isOn(channel: EmailChannel): boolean {
-    return !!this.channels()[channel.key];
-  }
-
-  /** A channel is effectively muted when the master switch is off. */
-  isMuted(): boolean {
-    return !this.master();
+    // Mandatory channels always read as on.
+    return channel.locked || !!this.channels()[channel.key];
   }
 
   sendTest(): void {
@@ -150,7 +142,13 @@ export class EmailNotificationsDialogComponent {
   }
 
   save(): void {
-    this.confirm.emit({ email: this.master(), channels: { ...this.channels() } });
+    // Force every mandatory channel on, then persist. The master email
+    // switch stays enabled — only the editable income channels vary.
+    const channels = { ...this.channels() };
+    for (const c of this.catalog()) {
+      if (c.locked) channels[c.key] = true;
+    }
+    this.confirm.emit({ email: true, channels });
   }
 
   dismiss(): void {

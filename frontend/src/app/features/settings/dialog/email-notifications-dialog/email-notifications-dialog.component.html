@@ -17,37 +17,17 @@
             <p class="end__eyebrow">Notifications</p>
             <h2 id="end-title" class="end__title">Email preferences</h2>
             <p class="end__subtitle">
-              Choose exactly which emails IWX-EarnLens sends you.
+              Manage your income alerts. Account &amp; security emails are always on.
             </p>
           </div>
           <button type="button" class="end__close" (click)="dismiss()" aria-label="Close">
             ✕
           </button>
         </div>
-
-        <!-- master switch -->
-        <div class="end__master" [class.is-off]="!master()">
-          <div class="end__master-text">
-            <span class="end__master-title">All email notifications</span>
-            <span class="end__master-hint">
-              {{ master() ? activeCount() + ' active' : 'Everything is paused' }}
-            </span>
-          </div>
-          <button
-            type="button"
-            class="rod__switch"
-            [class.is-on]="master()"
-            (click)="toggleMaster()"
-            [attr.aria-pressed]="master()"
-            aria-label="Toggle all email notifications"
-          >
-            <span class="rod__switch-dot"></span>
-          </button>
-        </div>
       </header>
 
       <!-- ── body ───────────────────────────────────────────── -->
-      <div class="end__body" [class.is-dimmed]="isMuted()">
+      <div class="end__body">
         @if (loading()) {
           <p class="end__empty">Loading channels…</p>
         } @else if (catalog().length === 0) {
@@ -61,30 +41,30 @@
                   <li
                     class="end__row"
                     [class.is-locked]="channel.locked"
-                    [class.is-off]="!isOn(channel)"
+                    [class.is-off]="!channel.locked && !isOn(channel)"
                   >
                     <div class="end__row-text">
-                      <span class="end__row-label">
-                        {{ channel.label }}
-                        @if (channel.locked) {
-                          <span class="end__lock" title="Always on for account security">
-                            🔒 Always on
-                          </span>
-                        }
-                      </span>
+                      <span class="end__row-label">{{ channel.label }}</span>
                       <span class="end__row-desc">{{ channel.description }}</span>
                     </div>
-                    <button
-                      type="button"
-                      class="rod__switch"
-                      [class.is-on]="isOn(channel)"
-                      [disabled]="channel.locked"
-                      (click)="toggleChannel(channel)"
-                      [attr.aria-pressed]="isOn(channel)"
-                      [attr.aria-label]="'Toggle ' + channel.label"
-                    >
-                      <span class="rod__switch-dot"></span>
-                    </button>
+
+                    @if (channel.locked) {
+                      <span class="end__pill" title="Always sent — required for your account">
+                        <span class="end__pill-dot"></span>
+                        Always on
+                      </span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="rod__switch"
+                        [class.is-on]="isOn(channel)"
+                        (click)="toggleChannel(channel)"
+                        [attr.aria-pressed]="isOn(channel)"
+                        [attr.aria-label]="'Toggle ' + channel.label"
+                      >
+                        <span class="rod__switch-dot"></span>
+                      </button>
+                    }
                   </li>
                 }
               </ul>

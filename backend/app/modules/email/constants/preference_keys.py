@@ -28,28 +28,28 @@ EMAIL_CHANNEL_CATALOG: List[Dict[str, object]] = [
         "label": "Welcome email",
         "description": "Sent once when you create your account.",
         "group": "Account",
-        "locked": False,
+        "locked": True,
     },
     {
         "key": "login_alert",
         "label": "New sign-in alerts",
-        "description": "Notify me whenever my account is signed into.",
+        "description": "Notifies you whenever your account is signed into.",
         "group": "Account",
-        "locked": False,
+        "locked": True,
     },
     {
         "key": "password_reset",
         "label": "Password reset",
-        "description": "Delivers your password reset link. Always on.",
+        "description": "Delivers your password reset link.",
         "group": "Security",
         "locked": True,
     },
     {
         "key": "password_changed",
         "label": "Password changed",
-        "description": "Confirm whenever my password is changed.",
+        "description": "Confirms whenever your password is changed.",
         "group": "Security",
-        "locked": False,
+        "locked": True,
     },
     {
         "key": "income_created",
@@ -73,3 +73,10 @@ EMAIL_CHANNEL_CATALOG: List[Dict[str, object]] = [
         "locked": False,
     },
 ]
+
+
+# Keys whose emails are mandatory: always sent and not user-configurable.
+# Derived from the catalog so the rule stays in one place.
+ALWAYS_ON_CHANNELS: frozenset = frozenset(
+    str(channel["key"]) for channel in EMAIL_CHANNEL_CATALOG if channel["locked"]
+)
