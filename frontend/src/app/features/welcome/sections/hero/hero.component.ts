@@ -20,4 +20,8 @@ export class HeroComponent {
   readonly memberSince = input<string>('');
   readonly avatarUrl = input<string | null>(null);
   readonly initials = input<string>('?');
+
+  scrollTo(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }
 }

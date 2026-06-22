@@ -42,10 +42,10 @@
       <a routerLink="/app/income/new" class="btn btn-secondary btn-lg">
         ＋ Add income
       </a>
-      <a href="#intro-film" class="btn btn-ghost btn-lg hero__play">
+      <button type="button" class="btn btn-ghost btn-lg hero__play" (click)="scrollTo('intro-film')">
         <span class="hero__play-icon" aria-hidden="true">▶</span>
         Watch the tour
-      </a>
+      </button>
     </div>
 
     @if (memberSince()) {
@@ -53,8 +53,8 @@
     }
   </div>
 
-  <a href="#feature-showcase" class="hero__scroll" aria-label="Scroll to explore">
+  <button type="button" class="hero__scroll" aria-label="Scroll to explore" (click)="scrollTo('feature-showcase')">
     <span class="hero__scroll-mouse"><span class="hero__scroll-dot"></span></span>
     <span class="hero__scroll-text">Scroll to explore</span>
-  </a>
+  </button>
 </header>

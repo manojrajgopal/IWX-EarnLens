@@ -1,6 +1,6 @@
 :host {
   display: block;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -12,9 +12,10 @@
 
 .welcome {
   width: 100%;
+  overflow-x: hidden;
 }
 
-/* offset anchors so in-page jumps clear nothing (no header) */
+/* offset anchors */
 .welcome__anchor {
   scroll-margin-top: 0;
 }
@@ -31,10 +32,6 @@
 :host ::ng-deep .reveal--in {
   opacity: 1;
   transform: translateY(0);
-}
-
-.welcome__tail {
-  height: clamp(2rem, 5vw, 4rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
