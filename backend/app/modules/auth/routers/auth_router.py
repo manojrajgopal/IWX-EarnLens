@@ -13,9 +13,12 @@ from app.modules.auth.schemas.auth_schemas import (
     LogoutRequest,
     RefreshRequest,
     RegisterRequest,
+    RegistrationPending,
+    ResendOtpRequest,
     ResetPasswordRequest,
     TokenPair,
     VerifyEmailRequest,
+    VerifyRegistrationRequest,
 )
 from app.modules.auth.services.auth_service import AuthService
 from app.shared.schemas import APIResponse
@@ -29,15 +32,43 @@ def _controller(service: AuthService = Depends(get_auth_service)) -> AuthControl
 
 @router.post(
     "/register",
-    response_model=APIResponse[AuthResult],
-    status_code=status.HTTP_201_CREATED,
+    response_model=APIResponse[RegistrationPending],
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def register(
     payload: RegisterRequest,
     controller: AuthController = Depends(_controller),
+) -> APIResponse[RegistrationPending]:
+    data = await controller.start_registration(payload)
+    return APIResponse(
+        data=data,
+        message="Verification code sent to your email.",
+    )
+
+
+@router.post(
+    "/register/verify",
+    response_model=APIResponse[AuthResult],
+    status_code=status.HTTP_201_CREATED,
+)
+async def verify_registration(
+    payload: VerifyRegistrationRequest,
+    controller: AuthController = Depends(_controller),
 ) -> APIResponse[AuthResult]:
-    data = await controller.register(payload)
+    data = await controller.verify_registration(payload)
     return APIResponse(data=data, message="Account created successfully.")
+
+
+@router.post(
+    "/register/resend-otp",
+    response_model=APIResponse[RegistrationPending],
+)
+async def resend_otp(
+    payload: ResendOtpRequest,
+    controller: AuthController = Depends(_controller),
+) -> APIResponse[RegistrationPending]:
+    data = await controller.resend_otp(payload)
+    return APIResponse(data=data, message="A new verification code was sent.")
 
 
 @router.post("/login", response_model=APIResponse[AuthResult])

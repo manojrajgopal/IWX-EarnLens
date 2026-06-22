@@ -73,3 +73,4 @@ class Collections:
     REFRESH_TOKENS = "refresh_tokens"
     AUDIT_LOGS = "audit_logs"
     PREFERENCES = "preferences"
+    PENDING_REGISTRATIONS = "pending_registrations"

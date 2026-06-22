@@ -8,8 +8,11 @@ from app.modules.auth.schemas.auth_schemas import (
     ForgotPasswordRequest,
     LoginRequest,
     RegisterRequest,
+    RegistrationPending,
+    ResendOtpRequest,
     ResetPasswordRequest,
     TokenPair,
+    VerifyRegistrationRequest,
 )
 from app.modules.auth.services.auth_service import AuthService
 from app.modules.users.schemas.user_schemas import UserPublic
@@ -19,9 +22,21 @@ class AuthController:
     def __init__(self, service: AuthService) -> None:
         self.service = service
 
-    async def register(self, payload: RegisterRequest) -> AuthResult:
-        result = await self.service.register(payload)
+    async def start_registration(
+        self, payload: RegisterRequest
+    ) -> RegistrationPending:
+        result = await self.service.start_registration(payload)
+        return RegistrationPending.model_validate(result)
+
+    async def verify_registration(
+        self, payload: VerifyRegistrationRequest
+    ) -> AuthResult:
+        result = await self.service.verify_registration_otp(payload)
         return self._to_auth_result(result)
+
+    async def resend_otp(self, payload: ResendOtpRequest) -> RegistrationPending:
+        result = await self.service.resend_registration_otp(payload)
+        return RegistrationPending.model_validate(result)
 
     async def login(self, payload: LoginRequest) -> AuthResult:
         result = await self.service.login(payload)

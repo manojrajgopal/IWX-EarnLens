@@ -4,14 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Preferences } from '../../core/models/preferences.model';
+import {
+  Preferences,
+  NotificationPreferences,
+} from '../../core/models/preferences.model';
 import { CURRENCY_OPTIONS } from '../../core/constants/app.constants';
 import { SpinnerComponent } from '../../shared/ui/spinner/spinner.component';
+import {
+  EmailNotificationsDialogComponent,
+  EmailNotificationsResult,
+} from './dialog/email-notifications-dialog/email-notifications-dialog.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, SpinnerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SpinnerComponent,
+    EmailNotificationsDialogComponent,
+  ],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent implements OnInit {
@@ -33,6 +45,7 @@ export class SettingsComponent implements OnInit {
   readonly saving = signal(false);
   readonly prefs = signal<Preferences | null>(null);
   readonly themeMode = this.theme.mode;
+  readonly notificationsOpen = signal(false);
 
   ngOnInit(): void {
     this.api.get().subscribe({
@@ -64,6 +77,30 @@ export class SettingsComponent implements OnInit {
       },
       error: () => this.saving.set(false),
     });
+  }
+
+  // ── email notifications ──────────────────────────────────
+  get emailEnabled(): boolean {
+    return this.prefs()?.notifications?.email ?? true;
+  }
+
+  get channelState(): Record<string, boolean> {
+    return this.prefs()?.notifications?.channels ?? {};
+  }
+
+  openNotifications(): void {
+    this.notificationsOpen.set(true);
+  }
+
+  saveNotifications(result: EmailNotificationsResult): void {
+    this.notificationsOpen.set(false);
+    const current = this.prefs()?.notifications ?? ({} as NotificationPreferences);
+    const next: NotificationPreferences = {
+      ...current,
+      email: result.email,
+      channels: { ...result.channels },
+    };
+    this.update('notifications', next);
   }
 
   goBack(): void {

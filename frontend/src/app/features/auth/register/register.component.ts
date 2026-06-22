@@ -16,11 +16,13 @@ import {
   username,
 } from '../shared/validators/auth.validators';
 import { RegisterFormComponent } from './components/register-form/register-form.component';
+import { OtpVerifyComponent } from './components/otp-verify/otp-verify.component';
 
 /**
- * Registration page — orchestrates the heading, the presentational
- * <app-register-form> (with extended fields + validation) and the
- * cinematic launch transition shown on success.
+ * Registration page — a two-step flow:
+ *   1. <app-register-form> collects the details and requests an email OTP.
+ *   2. <app-otp-verify> confirms the code; only then is the account created
+ *      and the cinematic launch transition shown.
  */
 @Component({
   selector: 'app-register',
@@ -28,6 +30,7 @@ import { RegisterFormComponent } from './components/register-form/register-form.
   imports: [
     AuthHeadingComponent,
     RegisterFormComponent,
+    OtpVerifyComponent,
     AuthSwitchComponent,
     LaunchTransitionComponent,
   ],
@@ -38,15 +41,35 @@ import { RegisterFormComponent } from './components/register-form/register-form.
         <span class="font-serif text-2xl font-bold">EarnLens</span>
       </div>
 
-      <app-auth-heading
-        kicker="Get started"
-        title="Create account"
-        subtitle="Start tracking your income in minutes."
-      />
+      @if (step() === 'form') {
+        <app-auth-heading
+          kicker="Get started"
+          title="Create account"
+          subtitle="Start tracking your income in minutes."
+        />
 
-      <app-register-form [form]="form" [loading]="loading()" (submitted)="submit()" />
+        <app-register-form [form]="form" [loading]="loading()" (submitted)="submit()" />
 
-      <app-auth-switch prompt="Already have an account?" action="Sign in" link="/login" />
+        <app-auth-switch prompt="Already have an account?" action="Sign in" link="/login" />
+      } @else {
+        <app-auth-heading
+          kicker="Verify email"
+          title="Enter your code"
+          subtitle="One quick step to secure your account."
+        />
+
+        <app-otp-verify
+          [email]="otpEmail()"
+          [loading]="verifying()"
+          [resending]="resending()"
+          [error]="otpError()"
+          [resendsRemaining]="resendsRemaining()"
+          [expiresIn]="expiresIn()"
+          (verify)="onVerify($event)"
+          (resend)="onResend()"
+          (back)="onBackToForm()"
+        />
+      }
     </div>
 
     @if (launching()) {
@@ -71,6 +94,17 @@ export class RegisterComponent implements OnInit {
   readonly loading = signal(false);
   readonly launching = signal(false);
   readonly displayName = signal('');
+
+  /** Which phase of registration the user is on. */
+  readonly step = signal<'form' | 'otp'>('form');
+  /** OTP-phase state. */
+  readonly verifying = signal(false);
+  readonly resending = signal(false);
+  readonly otpError = signal<string | null>(null);
+  readonly otpEmail = signal('');
+  readonly registrationId = signal('');
+  readonly resendsRemaining = signal(3);
+  readonly expiresIn = signal(600);
 
   /** Auto-tick the terms checkbox when user returns from legal pages. */
   private readonly autoTick = effect(() => {
@@ -115,17 +149,61 @@ export class RegisterComponent implements OnInit {
     }
     this.loading.set(true);
     const { full_name, username, email, phone, password, confirmPassword } = this.form.getRawValue();
-    this.auth.register({ full_name, username, email, phone, password, confirm_password: confirmPassword }).subscribe({
+    this.auth
+      .register({ full_name, username, email, phone, password, confirm_password: confirmPassword })
+      .subscribe({
+        next: (pending) => {
+          this.loading.set(false);
+          this.registrationId.set(pending.registration_id);
+          this.otpEmail.set(pending.email);
+          this.expiresIn.set(pending.expires_in);
+          this.resendsRemaining.set(pending.resends_remaining);
+          this.otpError.set(null);
+          this.step.set('otp');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.handleServerError(err);
+        },
+      });
+  }
+
+  onVerify(code: string): void {
+    this.verifying.set(true);
+    this.otpError.set(null);
+    this.auth.verifyRegistration(this.registrationId(), code).subscribe({
       next: (result) => {
         this.displayName.set(result.user.full_name?.split(' ')[0] || 'there');
-        this.loading.set(false);
+        this.verifying.set(false);
         this.launching.set(true);
       },
       error: (err: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.handleServerError(err);
+        this.verifying.set(false);
+        this.handleOtpError(err);
       },
     });
+  }
+
+  onResend(): void {
+    this.resending.set(true);
+    this.otpError.set(null);
+    this.auth.resendRegistrationOtp(this.registrationId()).subscribe({
+      next: (pending) => {
+        this.resending.set(false);
+        this.expiresIn.set(pending.expires_in);
+        this.resendsRemaining.set(pending.resends_remaining);
+        this.toast.success('A new code is on its way.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.resending.set(false);
+        this.handleOtpError(err);
+      },
+    });
+  }
+
+  onBackToForm(): void {
+    this.otpError.set(null);
+    this.step.set('form');
   }
 
   private handleServerError(err: HttpErrorResponse): void {
@@ -136,6 +214,21 @@ export class RegisterComponent implements OnInit {
     if (field && this.form.get(field)) {
       this.form.get(field)!.setErrors({ server: message });
       this.form.get(field)!.markAsTouched();
+    }
+  }
+
+  private handleOtpError(err: HttpErrorResponse): void {
+    const body = err.error as { error?: { message?: string; details?: { field?: string } } } | null;
+    const field = body?.error?.details?.field;
+    const message = body?.error?.message || 'Verification failed.';
+
+    if (field === 'otp') {
+      // Wrong code — keep the user on the OTP step to retry.
+      this.otpError.set(message);
+    } else {
+      // Session expired / pending registration gone — restart the flow.
+      this.toast.error(message);
+      this.step.set('form');
     }
   }
 

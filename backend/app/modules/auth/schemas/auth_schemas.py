@@ -27,6 +27,28 @@ class LoginRequest(BaseSchema):
     password: str = Field(min_length=1, max_length=128)
 
 
+class RegistrationPending(BaseSchema):
+    """Returned after the registration form is accepted and an OTP is emailed.
+
+    No account exists yet — the client must confirm the code via
+    ``/auth/register/verify`` to complete sign-up.
+    """
+
+    registration_id: str
+    email: EmailStr
+    expires_in: int  # seconds until the OTP expires
+    resends_remaining: int
+
+
+class VerifyRegistrationRequest(BaseSchema):
+    registration_id: str = Field(min_length=1, max_length=64)
+    otp: str = Field(min_length=4, max_length=10, pattern=r"^[0-9]+$")
+
+
+class ResendOtpRequest(BaseSchema):
+    registration_id: str = Field(min_length=1, max_length=64)
+
+
 class TokenPair(BaseSchema):
     access_token: str
     refresh_token: str

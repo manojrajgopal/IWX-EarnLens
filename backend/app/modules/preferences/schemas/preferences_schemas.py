@@ -16,7 +16,7 @@ class PreferencesUpdate(BaseSchema):
     week_starts_on: Optional[str] = Field(default=None)
     number_format: Optional[str] = Field(default=None)
     dashboard_widgets: Optional[Dict[str, bool]] = None
-    notifications: Optional[Dict[str, bool]] = None
+    notifications: Optional[Dict[str, Any]] = None
     metadata: Optional[Dict[str, Any]] = None
 
 
@@ -29,5 +29,5 @@ class PreferencesPublic(BaseSchema):
     week_starts_on: str = "monday"
     number_format: str = "en-US"
     dashboard_widgets: Dict[str, bool] = Field(default_factory=dict)
-    notifications: Dict[str, bool] = Field(default_factory=dict)
+    notifications: Dict[str, Any] = Field(default_factory=dict)
     metadata: Dict[str, Any] = Field(default_factory=dict)

@@ -35,6 +35,11 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await tokens.create_index([("token", ASCENDING)], unique=True)
     await tokens.create_index([("expires_at", ASCENDING)], expireAfterSeconds=0)
 
+    pending = db[Collections.PENDING_REGISTRATIONS]
+    await pending.create_index([("email", ASCENDING)])
+    # Auto-purge staged registrations once their OTP window lapses.
+    await pending.create_index([("expires_at", ASCENDING)], expireAfterSeconds=0)
+
     await db[Collections.AUDIT_LOGS].create_index(
         [("user_id", ASCENDING), ("created_at", DESCENDING)]
     )

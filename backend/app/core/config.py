@@ -6,10 +6,10 @@ directly. Adding a new setting only requires touching this file.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List
+from typing import Annotated, List
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -46,8 +46,14 @@ class Settings(BaseSettings):
     PASSWORD_RESET_EXPIRE_MINUTES: int = 30
     EMAIL_VERIFY_EXPIRE_HOURS: int = 48
 
+    # ---- Registration OTP (email verification before account creation) ----
+    OTP_LENGTH: int = 6
+    OTP_EXPIRE_MINUTES: int = 10
+    OTP_MAX_ATTEMPTS: int = 5
+    OTP_MAX_RESENDS: int = 3
+
     # ---- CORS ----
-    CORS_ORIGINS: List[str] = Field(
+    CORS_ORIGINS: Annotated[List[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:4200",
             "http://127.0.0.1:4200",
@@ -56,6 +62,28 @@ class Settings(BaseSettings):
 
     # ---- Defaults ----
     DEFAULT_CURRENCY: str = "INR"
+
+    # ---- Email / Google OAuth2 (Gmail API) ----
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/email/google/callback"
+    GOOGLE_REFRESH_TOKEN: str = ""
+    GOOGLE_ACCESS_TOKEN: str = ""
+
+    # ---- Email sender / behaviour ----
+    EMAIL_ENABLED: bool = True
+    EMAIL_SENDER_ADDRESS: str = ""
+    EMAIL_SENDER_NAME: str = "IWX-EarnLens"
+    FRONTEND_BASE_URL: str = "http://localhost:4200"
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        """True when enough Google credentials exist to send via Gmail API."""
+        return bool(
+            self.GOOGLE_CLIENT_ID
+            and self.GOOGLE_CLIENT_SECRET
+            and self.GOOGLE_REFRESH_TOKEN
+        )
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

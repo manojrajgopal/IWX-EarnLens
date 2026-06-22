@@ -9,6 +9,7 @@ import {
   AuthResult,
   LoginPayload,
   RegisterPayload,
+  RegistrationPending,
   TokenPair,
   User,
 } from '../models/user.model';
@@ -27,10 +28,31 @@ export class AuthService {
   readonly currentUser = this.userSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.userSignal() !== null && this.tokens.hasSession());
 
-  register(payload: RegisterPayload): Observable<AuthResult> {
+  /**
+   * Step 1 of registration — submits the form. The backend stages the
+   * details and emails a one-time code; no session is created yet.
+   */
+  register(payload: RegisterPayload): Observable<RegistrationPending> {
     return this.http
-      .post<ApiResponse<AuthResult>>(`${this.base}/register`, payload)
+      .post<ApiResponse<RegistrationPending>>(`${this.base}/register`, payload)
+      .pipe(map((r) => r.data));
+  }
+
+  /**
+   * Step 2 — confirms the emailed OTP. On success the account is created
+   * and the returned session is persisted.
+   */
+  verifyRegistration(registration_id: string, otp: string): Observable<AuthResult> {
+    return this.http
+      .post<ApiResponse<AuthResult>>(`${this.base}/register/verify`, { registration_id, otp })
       .pipe(map((r) => r.data), tap((result) => this.persist(result)));
+  }
+
+  /** Requests a fresh OTP for an in-flight registration. */
+  resendRegistrationOtp(registration_id: string): Observable<RegistrationPending> {
+    return this.http
+      .post<ApiResponse<RegistrationPending>>(`${this.base}/register/resend-otp`, { registration_id })
+      .pipe(map((r) => r.data));
   }
 
   login(payload: LoginPayload): Observable<AuthResult> {

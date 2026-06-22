@@ -7,8 +7,32 @@ export interface Preferences {
   week_starts_on: string;
   number_format: string;
   dashboard_widgets: Record<string, boolean>;
-  notifications: Record<string, boolean>;
+  notifications: NotificationPreferences;
   metadata: Record<string, unknown>;
+}
+
+/** User-facing notification settings. `channels` toggles individual emails. */
+export interface NotificationPreferences {
+  email: boolean;
+  weekly_summary?: boolean;
+  channels: Record<string, boolean>;
+  [key: string]: unknown;
+}
+
+/** A single toggleable email type, surfaced by GET /email/channels. */
+export interface EmailChannel {
+  key: string;
+  label: string;
+  description: string;
+  group: string;
+  locked: boolean;
+}
+
+export interface EmailStatus {
+  enabled: boolean;
+  provider: string;
+  ready: boolean;
+  sender: string;
 }
 
 export type PreferencesUpdate = Partial<Omit<Preferences, 'user_id'>>;

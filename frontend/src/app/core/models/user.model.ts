@@ -34,6 +34,14 @@ export interface RegisterPayload {
   confirm_password: string;
 }
 
+/** Returned after the registration form is accepted and an OTP is emailed. */
+export interface RegistrationPending {
+  registration_id: string;
+  email: string;
+  expires_in: number;
+  resends_remaining: number;
+}
+
 export interface LoginPayload {
   identifier: string;
   password: string;
