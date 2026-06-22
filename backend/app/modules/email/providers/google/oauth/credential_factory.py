@@ -29,11 +29,16 @@ class CredentialFactory:
         """Create credentials from the configured Google OAuth2 settings."""
         from google.oauth2.credentials import Credentials  # noqa: PLC0415
 
+        # NOTE: ``scopes`` is intentionally omitted. When scopes are set, the
+        # google-auth library sends a ``scope`` parameter on every refresh
+        # request; if it is not an exact subset of the scopes the refresh
+        # token was originally granted, Google rejects the refresh with
+        # ``invalid_scope: Bad Request``. Leaving scopes unset lets the refresh
+        # inherit whatever the token already carries.
         return Credentials(
             token=settings.GOOGLE_ACCESS_TOKEN or None,
             refresh_token=settings.GOOGLE_REFRESH_TOKEN,
             client_id=settings.GOOGLE_CLIENT_ID,
             client_secret=settings.GOOGLE_CLIENT_SECRET,
             token_uri=_GOOGLE_TOKEN_URI,
-            scopes=GMAIL_SEND_SCOPES,
         )
