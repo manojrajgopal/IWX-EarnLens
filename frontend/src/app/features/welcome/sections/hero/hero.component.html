@@ -7,6 +7,16 @@
   <span class="hero__orb hero__orb--c" aria-hidden="true"></span>
 
   <div class="hero__inner">
+    <!-- avatar -->
+    <div class="hero__avatar">
+      @if (avatarUrl()) {
+        <img [src]="avatarUrl()" alt="Profile picture" class="hero__avatar-img" />
+      } @else {
+        <span class="hero__avatar-fallback">{{ initials() }}</span>
+      }
+      <span class="hero__avatar-ring" aria-hidden="true"></span>
+    </div>
+
     <span class="hero__badge">
       <span class="hero__badge-dot"></span>
       EarnLens · Your income, in focus

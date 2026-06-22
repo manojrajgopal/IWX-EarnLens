@@ -77,6 +77,53 @@
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ---- avatar ---- */
+.hero__avatar {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0 auto 1.4rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.hero__avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+.hero__avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-contrast);
+  background: linear-gradient(135deg, var(--c-indigo), var(--c-violet));
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+.hero__avatar-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px dashed color-mix(in srgb, var(--c-violet) 55%, transparent);
+  animation: heroAvatarSpin 14s linear infinite;
+}
+
+@keyframes heroAvatarSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .hero__badge {
   display: inline-flex;
   align-items: center;

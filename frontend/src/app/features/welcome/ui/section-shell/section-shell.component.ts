@@ -31,9 +31,10 @@ import { Component, input } from '@angular/core';
   styles: [
     `
       .wsec {
-        max-width: 1180px;
+        width: 100%;
+        max-width: 100%;
         margin: 0 auto;
-        padding: clamp(3rem, 7vw, 6rem) 1.25rem;
+        padding: clamp(3rem, 7vw, 6rem) clamp(1rem, 3vw, 2.5rem);
       }
       .wsec__head {
         max-width: 720px;

@@ -1,9 +1,13 @@
 <div class="pulse">
   <!-- identity card -->
   <aside class="pulse__id">
-    <div class="pulse__avatar" aria-hidden="true">
-      <span>{{ initials() }}</span>
-      <span class="pulse__avatar-ring"></span>
+    <div class="pulse__avatar">
+      @if (avatarUrl()) {
+        <img [src]="avatarUrl()" alt="Profile picture" class="pulse__avatar-img" />
+      } @else {
+        <span class="pulse__avatar-initials">{{ initials() }}</span>
+      }
+      <span class="pulse__avatar-ring" aria-hidden="true"></span>
     </div>
     <h3 class="pulse__name">{{ fullName() || 'Your account' }}</h3>
     @if (username()) {

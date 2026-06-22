@@ -70,6 +70,7 @@ export class WelcomeComponent implements OnInit {
   readonly email = computed(() => this.user()?.email ?? '');
   readonly currency = computed(() => this.user()?.default_currency ?? '');
   readonly role = computed(() => this.user()?.role ?? 'user');
+  readonly avatarUrl = computed(() => this.user()?.avatar_url || null);
 
   readonly initials = computed(() => {
     const full = this.user()?.full_name?.trim();

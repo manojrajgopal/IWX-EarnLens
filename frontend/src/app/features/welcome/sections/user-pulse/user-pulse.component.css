@@ -36,6 +36,21 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
+}
+.pulse__avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.pulse__avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
   font-family: var(--font-serif);
   font-size: 1.7rem;
   font-weight: 700;

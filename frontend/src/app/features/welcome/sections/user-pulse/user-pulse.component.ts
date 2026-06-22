@@ -24,6 +24,7 @@ export class UserPulseComponent {
   readonly memberSince = input<string>('');
   readonly role = input<string>('user');
   readonly initials = input<string>('?');
+  readonly avatarUrl = input<string | null>(null);
   readonly loading = input<boolean>(false);
   readonly metrics = input<PulseMetric[]>([]);
 }

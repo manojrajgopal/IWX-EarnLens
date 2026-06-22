@@ -18,4 +18,6 @@ export class HeroComponent {
   readonly userName = input<string>('there');
   readonly greeting = input<string>('Welcome');
   readonly memberSince = input<string>('');
+  readonly avatarUrl = input<string | null>(null);
+  readonly initials = input<string>('?');
 }
