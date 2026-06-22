@@ -1,6 +1,7 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { timeout, TimeoutError } from 'rxjs';
 import { ReportService } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -12,7 +13,10 @@ import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state.com
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { HumanizePipe } from '../../shared/pipes/humanize.pipe';
 import { ReportOptionsDialogComponent, ReportDialogResult } from './dialog';
-import { PdfReportFacade, ReportOptions } from './pdf';
+import { ReportOptions } from './pdf';
+
+/** Hard ceiling for report generation — surface an error instead of hanging. */
+const REPORT_TIMEOUT_MS = 30_000;
 
 @Component({
   selector: 'app-reports',
@@ -31,7 +35,6 @@ import { PdfReportFacade, ReportOptions } from './pdf';
 })
 export class ReportsComponent {
   private readonly api = inject(ReportService);
-  private readonly pdf = inject(PdfReportFacade);
   private readonly auth = inject(AuthService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
@@ -54,13 +57,23 @@ export class ReportsComponent {
 
   generate(): void {
     this.loading.set(true);
-    this.api.generate(this.filters()).subscribe({
-      next: (report) => {
-        this.report.set(report);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .generate(this.filters())
+      .pipe(timeout(REPORT_TIMEOUT_MS))
+      .subscribe({
+        next: (report) => {
+          this.report.set(report);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.toast.error(
+            err instanceof TimeoutError
+              ? 'The report took too long to generate. Please try again.'
+              : 'Could not load report data.',
+          );
+        },
+      });
   }
 
   /** Open the cinematic options console, pre-filled with context. */
@@ -79,34 +92,52 @@ export class ReportsComponent {
     this.dialogOpen.set(false);
   }
 
-  /** Fetch data for the chosen range, then render the PDF. */
+  /** Generate the cinematic PDF server-side, then download or preview it. */
   onDialogConfirm(result: ReportDialogResult): void {
     this.dialogOpen.set(false);
     this.exporting.set(true);
-    const filters: IncomeFilters = {
-      start_date: result.options.startDate || null,
-      end_date: result.options.endDate || null,
-    };
-    this.api.generate(filters).subscribe({
-      next: (report) => {
-        this.report.set(report);
-        try {
+    this.api
+      .exportPdf(result.options as unknown as Record<string, unknown>)
+      .pipe(timeout(REPORT_TIMEOUT_MS))
+      .subscribe({
+        next: (blob) => {
+          this.exporting.set(false);
+          const fileName = `${result.options.fileName || 'earnlens-report'}.pdf`;
           if (result.action === 'preview') {
-            this.pdf.preview(report, result.options);
+            this.previewBlob(blob);
           } else {
-            this.pdf.download(report, result.options);
+            this.downloadBlob(blob, fileName);
             this.toast.success('Cinematic PDF generated.');
           }
-        } catch {
-          this.toast.error('Could not render the PDF.');
-        }
-        this.exporting.set(false);
-      },
-      error: () => {
-        this.exporting.set(false);
-        this.toast.error('Could not load report data.');
-      },
-    });
+        },
+        error: (err) => {
+          this.exporting.set(false);
+          this.toast.error(
+            err instanceof TimeoutError
+              ? 'The report took too long to generate. Please try again.'
+              : 'Could not generate the PDF.',
+          );
+        },
+      });
+  }
+
+  /** Trigger a browser download for the generated PDF blob. */
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  }
+
+  /** Open the generated PDF blob in a new tab for preview. */
+  private previewBlob(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }
 
   trendLabels(report: IncomeReport): string[] {

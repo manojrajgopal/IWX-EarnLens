@@ -1,11 +1,14 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, switchMap, take, throwError, timeout } from 'rxjs';
 import { TokenService } from '../services/token.service';
 import { AuthService } from '../services/auth.service';
 
 let isRefreshing = false;
 const refreshedToken$ = new BehaviorSubject<string | null>(null);
+
+/** Upper bound for a single token-refresh + replay so requests never hang. */
+const REFRESH_TIMEOUT_MS = 20_000;
 
 const AUTH_EXEMPT = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password'];
 
@@ -37,6 +40,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return refreshedToken$.pipe(
           filter((token): token is string => token !== null),
           take(1),
+          timeout(REFRESH_TIMEOUT_MS),
           switchMap((token) =>
             next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })),
           ),
@@ -47,6 +51,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       refreshedToken$.next(null);
 
       return auth.refresh().pipe(
+        timeout(REFRESH_TIMEOUT_MS),
         switchMap((pair) => {
           isRefreshing = false;
           refreshedToken$.next(pair.access_token);
@@ -54,6 +59,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }),
         catchError((refreshError) => {
           isRefreshing = false;
+          refreshedToken$.next(null);
           auth.clearSession();
           auth.logout();
           return throwError(() => refreshError);

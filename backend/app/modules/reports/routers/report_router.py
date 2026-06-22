@@ -5,12 +5,13 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 
 from app.api.dependencies import get_current_user
 from app.core.constants import IncomeType, RecurrenceType
 from app.modules.incomes.schemas.filter_schemas import IncomeFilter
 from app.modules.reports.dependencies.report_dependencies import get_report_service
+from app.modules.reports.pdf import ReportExportRequest, render_report_pdf
 from app.modules.reports.schemas.report_schemas import IncomeReport
 from app.modules.reports.services.report_service import ReportService
 from app.modules.reports.utils.csv_exporter import rows_to_csv
@@ -62,4 +63,30 @@ async def export_csv(
         iter([content]),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=earnlens-report.csv"},
+    )
+
+
+@router.post("/export/pdf")
+async def export_pdf(
+    options: ReportExportRequest,
+    user=Depends(get_current_user),
+    service: ReportService = Depends(get_report_service),
+) -> Response:
+    """Render the cinematic PDF report server-side and stream it back."""
+    currency = user.get("default_currency", "INR")
+    filters = IncomeFilter(
+        start_date=options.start_date,
+        end_date=options.end_date,
+    )
+    report = await service.build(user["id"], filters, currency)
+    pdf_bytes = render_report_pdf(report, options, currency)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{options.safe_file_name()}"'
+            ),
+            "Content-Length": str(len(pdf_bytes)),
+        },
     )

@@ -61,4 +61,9 @@ export class ApiService {
   getBlob(path: string, params?: HttpParams): Observable<Blob> {
     return this.http.get(this.url(path), { params, responseType: 'blob' });
   }
+
+  /** Raw POST that resolves a binary payload (e.g. a generated PDF). */
+  postBlob(path: string, body: unknown, params?: HttpParams): Observable<Blob> {
+    return this.http.post(this.url(path), body, { params, responseType: 'blob' });
+  }
 }

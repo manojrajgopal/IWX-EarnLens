@@ -15,4 +15,9 @@ export class ReportService {
   exportCsv(filters: IncomeFilters): Observable<Blob> {
     return this.api.getBlob('/reports/export/csv', this.api.toParams({ ...filters }));
   }
+
+  /** Generate the cinematic PDF server-side and resolve it as a Blob. */
+  exportPdf(options: Record<string, unknown>): Observable<Blob> {
+    return this.api.postBlob('/reports/export/pdf', options);
+  }
 }
